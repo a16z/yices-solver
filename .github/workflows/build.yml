@@ -60,15 +60,33 @@ jobs:
 
           # ---------- macOS ----------
           CIBW_BEFORE_BUILD_MACOS: >-
+            OS=apple-darwin20.6.0
+            EXTRA=
+
             if [[ $(uname -m) == "x86_64" ]]; then
-              ARCH=x86_64-apple-darwin21.6.0 ;
+              ARCH=x86_64
+              if [[ ${YICES_VERSION} == "2.6.5" ]]; then
+                OS=apple-darwin21.6.0 ;
+                EXTRA="-static-gmp"
+              elif [[ ${YICES_VERSION} == "2.6.4" ]]; then
+                # nothing extra
+              else
+                echo "Unsupported Yices version: ${YICES_VERSION}"
+                exit 1
+              fi
             else
-              ARCH=arm-apple-darwin22.6.0 ;
+              ARCH=arm64
+              if [[ ${YICES_VERSION} == "2.6.5" ]]; then
+                OS=apple-darwin22.6.0 ;
+                EXTRA="-static-gmp"
+              elif [[ ${YICES_VERSION} == "2.6.4" ]]; then
+                # nothing extra
+              else
+                echo "Unsupported Yices version: ${YICES_VERSION}"
+                exit 1
+              fi
             fi &&
-            # URL for 2.6.5 and up
-            # curl -sSL --fail -o /tmp/yices.tgz https://github.com/SRI-CSL/yices2/releases/download/Yices-${YICES_VERSION}/yices-${YICES_VERSION}-${ARCH}-static-gmp.tar.gz &&
-            # URL for 2.6.4 and below
-            curl -sSL -o /tmp/yices.tgz https://github.com/SRI-CSL/yices2/releases/download/Yices-${YICES_VERSION}/yices-${YICES_VERSION}-${ARCH}.tar.gz &&
+            curl -sSL -o /tmp/yices.tgz https://github.com/SRI-CSL/yices2/releases/download/Yices-${YICES_VERSION}/yices-${YICES_VERSION}-${ARCH}-${OS}${EXTRA}.tar.gz &&
             tar -C /tmp -xzf /tmp/yices.tgz &&
             mkdir -p yices2_binary/bin &&
             mkdir -p yices2_binary/lib &&
