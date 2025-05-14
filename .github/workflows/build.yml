@@ -48,7 +48,7 @@ jobs:
 
           # ---------- Linux ----------
           CIBW_BEFORE_BUILD_LINUX: >-
-            curl -sSL -o /tmp/yices.tgz https://github.com/SRI-CSL/yices2/releases/download/Yices-${YICES_VERSION}/yices-${YICES_VERSION}-x86_64-pc-linux-gnu-static-gmp.tar.gz &&
+            curl -sSL --fail -o /tmp/yices.tgz https://github.com/SRI-CSL/yices2/releases/download/Yices-${YICES_VERSION}/yices-${YICES_VERSION}-x86_64-pc-linux-gnu-static-gmp.tar.gz &&
             tar -C /tmp -xzf /tmp/yices.tgz &&
             mkdir -p yices2_binary/bin &&
             mkdir -p yices2_binary/lib &&
@@ -66,7 +66,7 @@ jobs:
               ARCH=arm-apple-darwin22.6.0 ;
             fi &&
             # URL for 2.6.5 and up
-            # curl -sSL -o /tmp/yices.tgz https://github.com/SRI-CSL/yices2/releases/download/Yices-${YICES_VERSION}/yices-${YICES_VERSION}-${ARCH}-static-gmp.tar.gz &&
+            # curl -sSL --fail -o /tmp/yices.tgz https://github.com/SRI-CSL/yices2/releases/download/Yices-${YICES_VERSION}/yices-${YICES_VERSION}-${ARCH}-static-gmp.tar.gz &&
             # URL for 2.6.4 and below
             curl -sSL -o /tmp/yices.tgz https://github.com/SRI-CSL/yices2/releases/download/Yices-${YICES_VERSION}/yices-${YICES_VERSION}-${ARCH}.tar.gz &&
             tar -C /tmp -xzf /tmp/yices.tgz &&
@@ -79,7 +79,7 @@ jobs:
 
           # ---------- Windows ----------
           CIBW_BEFORE_BUILD_WINDOWS: >-
-            curl -sSL -o C:\yices.zip https://github.com/SRI-CSL/yices2/releases/download/Yices-${env:YICES_VERSION}/yices-${env:YICES_VERSION}-x86_64-unknown-mingw32-static-gmp.zip &&
+            curl -sSL --fail -o C:\yices.zip https://github.com/SRI-CSL/yices2/releases/download/Yices-${env:YICES_VERSION}/yices-${env:YICES_VERSION}-x86_64-unknown-mingw32-static-gmp.zip &&
             7z x C:\yices.zip -oC:\yices >NUL &&
             mkdir yices2_binary\bin &&
             mkdir yices2_binary\lib &&
