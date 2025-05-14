@@ -11,7 +11,7 @@ on:
 
 jobs:
   wheels:
-    name: ${{ matrix.os }} wheels
+    name: ${{ matrix.os == 'ubuntu-latest' && 'x86_64-linux' || matrix.os == 'macos-13' && 'x86_64-macos' || matrix.os == 'macos-14' && 'arm64-macos' || matrix.os == 'windows-latest' && 'x86_64-windows' }} wheel
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -48,6 +48,12 @@ jobs:
 
           # ---------- Linux ----------
           CIBW_BEFORE_BUILD_LINUX: >-
+            curl -sSL -o /tmp/yices.tgz https://github.com/SRI-CSL/yices2/releases/download/Yices-${YICES_VERSION}/yices-${YICES_VERSION}-x86_64-pc-linux-gnu-static-gmp.tar.gz &&
+            tar -C /tmp -xzf /tmp/yices.tgz &&
+            mkdir -p yices2_binary/bin &&
+            mkdir -p yices2_binary/lib &&
+            cp /tmp/yices-${YICES_VERSION}/bin/* yices2_binary/bin/ &&
+            cp /tmp/yices-${YICES_VERSION}/lib/* yices2_binary/lib/
 
           CIBW_REPAIR_WHEEL_COMMAND_LINUX: |
             auditwheel repair -w {dest_dir} {wheel}
@@ -71,8 +77,7 @@ jobs:
 
           # ---------- Windows ----------
           CIBW_BEFORE_BUILD_WINDOWS: >-
-            curl -sSL -o C:\yices.zip
-              https://github.com/SRI-CSL/yices2/releases/download/Yices-${env:YICES_VERSION}/yices-${env:YICES_VERSION}-x86_64-unknown-mingw32-static-gmp.zip &&
+            curl -sSL -o C:\yices.zip https://github.com/SRI-CSL/yices2/releases/download/Yices-${env:YICES_VERSION}/yices-${env:YICES_VERSION}-x86_64-unknown-mingw32-static-gmp.zip &&
             7z x C:\yices.zip -oC:\yices >NUL &&
             mkdir yices2_binary\bin &&
             mkdir yices2_binary\lib &&
