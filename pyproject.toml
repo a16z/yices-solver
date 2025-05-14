@@ -11,7 +11,7 @@ name            = "yices2-binary"
 dynamic         = ["version"]          # setuptools-scm paints this in
 description     = "Platform-tagged wheels bundling the Yices 2 SMT solver (CLI + shared library)"
 readme          = "README.md"
-license         = "GPL-3.0-or-later"
+license = { file = "LICENSE" }
 requires-python = ">=3.8"
 authors = [
   {name = "karmacoma", email = "karma@coma.lol"}
