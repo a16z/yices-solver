@@ -69,36 +69,22 @@ jobs:
             cp /tmp/yices-${YICES_VERSION}/lib/* yices2_binary/lib/
 
           CIBW_REPAIR_WHEEL_COMMAND_LINUX: |
-            auditwheel repair -w {dest_dir} {wheel}
+            auditwheel repair --plat manylinux_2_28_x86_64 -w {dest_dir} {wheel}
 
           # ---------- macOS ----------
           CIBW_BEFORE_BUILD_MACOS: >-
+            set -euo pipefail
 
-            if [[ $(uname -m) == "x86_64" ]]; then
-              ARCH=x86_64
-              if [[ ${YICES_VERSION} == "2.6.5" ]]; then
-                OS=apple-darwin21.6.0
-                EXTRA="-static-gmp"
-              elif [[ ${YICES_VERSION} == "2.6.4" ]]; then
-                OS=apple-darwin20.6.0
-                EXTRA=""
-              else
-                echo "Unsupported Yices version: ${YICES_VERSION}"
-                exit 1
-              fi
-            else
-              ARCH=arm64
-              if [[ ${YICES_VERSION} == "2.6.5" ]]; then
-                OS=apple-darwin22.6.0
-                EXTRA="-static-gmp"
-              elif [[ ${YICES_VERSION} == "2.6.4" ]]; then
-                OS=apple-darwin20.6.0
-                EXTRA=""
-              else
-                echo "Unsupported Yices version: ${YICES_VERSION}"
-                exit 1
-              fi
-            fi
+            ARCH=$(uname -m)
+            [[ "${ARCH}" == "arm64" ]] && ARCH=arm
+
+            case "${YICES_VERSION}-${ARCH}" in
+              2.6.5-x86_64) OS=apple-darwin21.6.0 ; EXTRA="-static-gmp" ;;
+              2.6.5-arm)    OS=apple-darwin22.6.0 ; EXTRA="-static-gmp" ;;
+              2.6.4-x86_64) OS=apple-darwin20.6.0 ; EXTRA=""           ;;
+              2.6.4-arm)    OS=apple-darwin20.6.0 ; EXTRA=""           ;;
+              *) echo "Unsupported Yices version/arch: ${YICES_VERSION}-${ARCH}" >&2 ; exit 1 ;;
+            esac
 
             URL=https://github.com/SRI-CSL/yices2/releases/download/Yices-${YICES_VERSION}/yices-${YICES_VERSION}-${ARCH}-${OS}${EXTRA}.tar.gz &&
             echo "Downloading Yices from ${URL}" &&
