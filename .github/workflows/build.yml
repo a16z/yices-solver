@@ -8,6 +8,8 @@ on:
         required: true
   push:
     tags: [ "*.*.*" ]  # e.g. "2.6.5"
+    branches:
+      - main
 
 jobs:
   wheels:
@@ -19,9 +21,8 @@ jobs:
         os: [ ubuntu-latest, macos-13, macos-14, windows-latest ]
 
     env:
-      YICES_VERSION: ${{ github.event.inputs.yices_version || github.ref_name }}
+      YICES_VERSION: ${{ github.event.inputs.yices_version || (github.ref_name != 'main' && github.ref_name) || '2.6.4' }}
       PYTHON_VERSION: "3.12"             # just for the cibuildwheel driver
-
     steps:
       - uses: actions/checkout@v4
 
