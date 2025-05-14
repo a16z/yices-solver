@@ -1,0 +1,52 @@
+[build-system]
+requires = [
+  "setuptools>=70",          # PEP 621 & inline extensions
+  "setuptools_scm[toml]>=8", # version from git tags
+  "wheel"                    # pip still calls this explicitly
+]
+build-backend = "setuptools.build_meta"
+
+[project]
+name            = "yices2-binary"
+dynamic         = ["version"]          # setuptools-scm paints this in
+description     = "Platform-tagged wheels bundling the Yices 2 SMT solver (CLI + shared library)"
+readme          = "README.md"
+license         = "GPL-3.0-or-later"
+requires-python = ">=3.8"
+authors = [
+  {name = "karmacoma", email = "karma@coma.lol"}
+]
+classifiers = [
+  "Programming Language :: Python :: 3 :: Only",
+  "Operating System :: POSIX :: Linux",
+  "Operating System :: MacOS",
+  "Operating System :: Microsoft :: Windows"
+]
+
+[project.scripts]
+yices-smt2 = "yices2_binary:_run_cli"
+
+[tool.setuptools]
+include-package-data = true      # keep this
+package-dir = {"" = "."}         # optional, but explicit never hurts
+
+ext-modules = [
+  { name = "_bootstrap", sources = ["src/_bootstrap.c"] }
+]
+
+[tool.setuptools.packages.find]
+where   = ["."]
+include = ["yices2_binary*"]
+
+[tool.setuptools.package-data]
+yices2_binary = [
+  "bin/*",
+  "lib/*",
+  "licenses/*"
+]
+
+[tool.setuptools_scm]
+# Tags are plain semantic-version strings like 2.6.5, 2.6.6-rc1, etc.
+tag_regex     = "^(?P<version>\\d+\\.\\d+\\.\\d+(?:[.-]rc\\d+)?)$"
+version_scheme = "no-guess-dev"
+local_scheme   = "no-local-version"

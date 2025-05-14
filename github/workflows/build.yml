@@ -1,0 +1,86 @@
+name: build-and-upload-wheels
+
+on:
+  workflow_dispatch:
+    inputs:
+      yices_version:
+        description: "Upstream Yices version (e.g. 2.6.5)"
+        required: true
+  push:
+    tags: [ "*.*.*" ]  # e.g. "2.6.5"
+
+jobs:
+  wheels:
+    name: ${{ matrix.os }} wheels
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ ubuntu-latest, macos-13, macos-14, windows-latest ]
+
+    env:
+      YICES_VERSION: ${{ github.event.inputs.yices_version || github.ref_name }}
+      PYTHON_VERSION: "3.12"             # just for the cibuildwheel driver
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with: { python-version: '${{ env.PYTHON_VERSION }}' }
+
+      - run: |
+          python -m pip install --upgrade pip
+          pip install cibuildwheel==2.18.1 delocate auditwheel
+
+      # ──────────────────────────────
+      # build the wheels
+      #     * download the right Yices artefact inside CIBW_BEFORE_BUILD_*
+      #     * run auditwheel/delocate to fix RPATH / @rpath
+      # ──────────────────────────────
+      - name: cibuildwheel
+        run: cibuildwheel --output-dir wheelhouse
+        env:
+          CIBW_BUILD_VERBOSITY: 2
+          CIBW_SKIP: "pp* *musllinux* *i686*"          # keep the matrix lean
+          CIBW_ARCHS_MACOS: "native"                   # x86_64 on macos-13, arm64 on macos-14
+          CIBW_ENVIRONMENT: >-
+            YICES_VERSION=${{ env.YICES_VERSION }}
+
+          # ---------- Linux ----------
+          CIBW_BEFORE_BUILD_LINUX: >-
+
+          CIBW_REPAIR_WHEEL_COMMAND_LINUX: |
+            auditwheel repair -w {dest_dir} {wheel}
+
+          # ---------- macOS ----------
+          CIBW_BEFORE_BUILD_MACOS: >-
+            if [[ $(uname -m) == "x86_64" ]]; then
+              ARCH=x86_64-apple-darwin21.6.0 ;
+            else
+              ARCH=arm-apple-darwin22.6.0 ;
+            fi &&
+            curl -sSL -o /tmp/yices.tgz
+              https://github.com/SRI-CSL/yices2/releases/download/Yices-${YICES_VERSION}/yices-${YICES_VERSION}-${ARCH}-static-gmp.tar.gz &&
+            tar -C /tmp -xzf /tmp/yices.tgz &&
+            mkdir -p yices2_binary/bin &&
+            mkdir -p yices2_binary/lib &&
+            cp /tmp/yices-${YICES_VERSION}/bin/* yices2_binary/bin/ &&
+            cp /tmp/yices-${YICES_VERSION}/lib/* yices2_binary/lib/
+          CIBW_REPAIR_WHEEL_COMMAND_MACOS: |
+            delocate-wheel -v -w {dest_dir} {wheel}
+
+          # ---------- Windows ----------
+          CIBW_BEFORE_BUILD_WINDOWS: >-
+            curl -sSL -o C:\yices.zip
+              https://github.com/SRI-CSL/yices2/releases/download/Yices-${env:YICES_VERSION}/yices-${env:YICES_VERSION}-x86_64-unknown-mingw32-static-gmp.zip &&
+            7z x C:\yices.zip -oC:\yices >NUL &&
+            mkdir yices2_binary\bin &&
+            mkdir yices2_binary\lib &&
+            copy C:\yices\yices-${env:YICES_VERSION}\bin\* yices2_binary\bin\ &&
+            copy C:\yices\yices-${env:YICES_VERSION}\lib\* yices2_binary\lib\
+          CIBW_REPAIR_WHEEL_COMMAND_WINDOWS: ""
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: wheels-${{ matrix.os }}
+          path: wheelhouse/*.whl
