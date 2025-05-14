@@ -48,7 +48,19 @@ jobs:
 
           # ---------- Linux ----------
           CIBW_BEFORE_BUILD_LINUX: >-
-            curl -sSL --fail -o /tmp/yices.tgz https://github.com/SRI-CSL/yices2/releases/download/Yices-${YICES_VERSION}/yices-${YICES_VERSION}-x86_64-pc-linux-gnu-static-gmp.tar.gz &&
+            ARCH=x86_64
+            if [[ ${YICES_VERSION} == "2.6.5" ]]; then
+              EXTRA="-static-gmp"
+            elif [[ ${YICES_VERSION} == "2.6.4" ]]; then
+              EXTRA=""
+            else
+              echo "Unsupported Yices version: ${YICES_VERSION}"
+              exit 1
+            fi
+
+            URL=https://github.com/SRI-CSL/yices2/releases/download/Yices-${YICES_VERSION}/yices-${YICES_VERSION}-x86_64-pc-linux-gnu${EXTRA}.tar.gz &&
+            echo "Downloading Yices from ${URL}" &&
+            curl -sSL -o /tmp/yices.tgz ${URL} &&
             tar -C /tmp -xzf /tmp/yices.tgz &&
             mkdir -p yices2_binary/bin &&
             mkdir -p yices2_binary/lib &&
@@ -86,7 +98,9 @@ jobs:
                 exit 1
               fi
             fi &&
-            curl -sSL -o /tmp/yices.tgz https://github.com/SRI-CSL/yices2/releases/download/Yices-${YICES_VERSION}/yices-${YICES_VERSION}-${ARCH}-${OS}${EXTRA}.tar.gz &&
+            URL=https://github.com/SRI-CSL/yices2/releases/download/Yices-${YICES_VERSION}/yices-${YICES_VERSION}-${ARCH}-${OS}${EXTRA}.tar.gz &&
+            echo "Downloading Yices from ${URL}" &&
+            curl -sSL -o /tmp/yices.tgz ${URL} &&
             tar -C /tmp -xzf /tmp/yices.tgz &&
             mkdir -p yices2_binary/bin &&
             mkdir -p yices2_binary/lib &&
