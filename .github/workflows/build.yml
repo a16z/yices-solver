@@ -65,7 +65,10 @@ jobs:
             else
               ARCH=arm-apple-darwin22.6.0 ;
             fi &&
-            curl -sSL -o /tmp/yices.tgz https://github.com/SRI-CSL/yices2/releases/download/Yices-${YICES_VERSION}/yices-${YICES_VERSION}-${ARCH}-static-gmp.tar.gz &&
+            # URL for 2.6.5 and up
+            # curl -sSL -o /tmp/yices.tgz https://github.com/SRI-CSL/yices2/releases/download/Yices-${YICES_VERSION}/yices-${YICES_VERSION}-${ARCH}-static-gmp.tar.gz &&
+            # URL for 2.6.4 and below
+            curl -sSL -o /tmp/yices.tgz https://github.com/SRI-CSL/yices2/releases/download/Yices-${YICES_VERSION}/yices-${YICES_VERSION}-${ARCH}.tar.gz &&
             tar -C /tmp -xzf /tmp/yices.tgz &&
             mkdir -p yices2_binary/bin &&
             mkdir -p yices2_binary/lib &&
