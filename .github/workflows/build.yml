@@ -77,6 +77,7 @@ jobs:
             pushd gmp-${GMP_VERSION}
               ./configure --disable-shared --enable-static --with-pic --prefix=/usr/local
               make -j$(nproc)
+              make check
               make install
             popd
 
@@ -84,13 +85,15 @@ jobs:
             git clone --depth=1 https://github.com/SRI-CSL/yices2 &&
             cd yices2 &&
             autoconf &&
-            ./configure &&
+            ./configure \
+              --with-pic-gmp=/usr/local/lib/libgmp.a \
+              --with-pic-gmp-include-dir=/usr/local/include &&
             make show-config MODE=release &&
-            make -j$(nproc) static-bin &&
+            make -j$(nproc) &&
             mkdir -p yices2_binary/bin &&
             mkdir -p yices2_binary/lib &&
-            cp build/static_bin/* ../yices2_binary/bin/ &&
-            cp build/static_lib/* ../yices2_binary/lib/
+            cp build/bin/* ../yices2_binary/bin/ &&
+            cp build/lib/* ../yices2_binary/lib/
 
 
           CIBW_REPAIR_WHEEL_COMMAND_LINUX: |
