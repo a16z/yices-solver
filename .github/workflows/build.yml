@@ -136,6 +136,9 @@ jobs:
             delocate-wheel --require-target-macos-version 11.0 -v -w {dest_dir} {wheel}
 
           # ---------- Windows ----------
+          # skip win32, the release binaries are
+          # PE32+ executable (console) x86-64 (stripped to external PDB), for MS Windows
+          CIBW_ARCHS_WINDOWS: "AMD64"
           CIBW_BEFORE_ALL_WINDOWS: |
             bash -exc "
               set -euo pipefail
@@ -154,9 +157,12 @@ jobs:
               set -euo pipefail
 
               # stage binaries & shared library into the wheel build tree
+              # note: libyices.dll is in bin/
               mkdir -p yices2_binary/bin yices2_binary/lib
               cp yices*/bin/*  yices2_binary/bin/
-              cp yices*/lib/*  yices2_binary/lib/
+
+              # skip this step, only contains libyices.a and libyices.dll.a
+              # cp yices*/lib/libyices.so.* yices2_binary/bin/
             "
 
           CIBW_REPAIR_WHEEL_COMMAND_WINDOWS: ""
