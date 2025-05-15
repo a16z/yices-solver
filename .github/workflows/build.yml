@@ -45,6 +45,7 @@ jobs:
           CIBW_BUILD_VERBOSITY: 2
           CIBW_SKIP: "pp* *musllinux* *i686*"          # keep the matrix lean
           CIBW_ARCHS_MACOS: "native"                   # x86_64 on macos-13, arm64 on macos-14
+          CIBW_MANYLINUX_X86_64_IMAGE: manylinux_2_28
           CIBW_ENVIRONMENT: >-
             YICES_VERSION=${{ env.YICES_VERSION }}
 
@@ -99,7 +100,7 @@ jobs:
 
 
           CIBW_REPAIR_WHEEL_COMMAND_LINUX: |
-            auditwheel repair --plat manylinux_2_28 -w {dest_dir} {wheel}
+            bash -c "auditwheel repair --plat ${AUDITWHEEL_PLAT} -w {dest_dir} {wheel}"
 
           # ---------- macOS ----------
           CIBW_BEFORE_BUILD_MACOS: |
