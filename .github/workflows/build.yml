@@ -71,6 +71,15 @@ jobs:
             # cp /tmp/yices-${YICES_VERSION}/bin/* yices2_binary/bin/ &&
             # cp /tmp/yices-${YICES_VERSION}/lib/* yices2_binary/lib/
 
+            # build static GMP
+            GMP_VERSION=6.3.0
+            curl -sSL https://ftp.gnu.org/gnu/gmp/gmp-${GMP_VERSION}.tar.xz | tar -xJ
+            pushd gmp-${GMP_VERSION}
+              ./configure --disable-shared --enable-static --with-pic --prefix=/usr/local
+              make -j$(nproc)
+              make install
+            popd
+
             dnf -y install gperf &&
             git clone --depth=1 https://github.com/SRI-CSL/yices2 &&
             cd yices2 &&
