@@ -50,7 +50,7 @@ jobs:
             YICES_VERSION=${{ env.YICES_VERSION }}
 
           # ---------- Linux ----------
-          CIBW_BEFORE_BUILD_LINUX: >-
+          CIBW_BEFORE_BUILD_LINUX: |
             ARCH=x86_64
 
             # if [[ ${YICES_VERSION} == "2.6.5" ]]; then
