@@ -122,7 +122,7 @@ jobs:
             URL=https://github.com/SRI-CSL/yices2/releases/download/Yices-${YICES_VERSION}/yices-${YICES_VERSION}-${ARCH}-${OS}${EXTRA}.tar.gz &&
             echo "Downloading Yices from ${URL}" &&
             curl -sSL -o /tmp/yices.tgz ${URL} &&
-            tar -C /tmp -xzf /tmp/yices.tgz &&
+            tar -C /tmp -xzf /tmp/yices.tgz
 
           CIBW_BEFORE_BUILD_MACOS: |
             set -euo pipefail
