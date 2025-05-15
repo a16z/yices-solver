@@ -70,6 +70,7 @@ jobs:
             # cp /tmp/yices-${YICES_VERSION}/bin/* yices2_binary/bin/ &&
             # cp /tmp/yices-${YICES_VERSION}/lib/* yices2_binary/lib/
 
+            yum -y install gperf &&
             git clone --depth=1 https://github.com/SRI-CSL/yices2 &&
             cd yices2 &&
             autoconf &&
