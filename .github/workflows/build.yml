@@ -128,7 +128,7 @@ jobs:
             cp /tmp/yices-${YICES_VERSION}/bin/* yices2_binary/bin/ &&
             cp /tmp/yices-${YICES_VERSION}/lib/* yices2_binary/lib/
           CIBW_REPAIR_WHEEL_COMMAND_MACOS: |
-            delocate-wheel --require-macosx-version 11.0 -v -w {dest_dir} {wheel}
+            delocate-wheel --require-target-macos-version 11.0 -v -w {dest_dir} {wheel}
 
           # ---------- Windows ----------
           CIBW_BEFORE_BUILD_WINDOWS: >-
