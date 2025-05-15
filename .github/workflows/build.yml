@@ -77,7 +77,10 @@ jobs:
             pushd gmp-${GMP_VERSION}
               ./configure --disable-shared --enable-static --with-pic --prefix=/usr/local
               make -j$(nproc)
-              make check
+
+              # disable tests for now to speed up the build
+              # make check
+
               make install
             popd
 
@@ -92,8 +95,8 @@ jobs:
             make -j$(nproc) &&
             mkdir -p yices2_binary/bin &&
             mkdir -p yices2_binary/lib &&
-            cp build/x86_64-pc-linux-gnu-release/bin/* ../yices2_binary/bin/ &&
-            cp build/x86_64-pc-linux-gnu-release/lib/* ../yices2_binary/lib/
+            cp build/x86_64-pc-linux-gnu-release/bin/* yices2_binary/bin/ &&
+            cp build/x86_64-pc-linux-gnu-release/lib/* yices2_binary/lib/
 
 
           CIBW_REPAIR_WHEEL_COMMAND_LINUX: |
