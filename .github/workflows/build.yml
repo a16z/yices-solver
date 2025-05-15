@@ -12,7 +12,7 @@ on:
       - main
 
 jobs:
-  wheels:
+  build-wheels:
     name: ${{ matrix.os == 'ubuntu-latest' && 'x86_64-linux' || matrix.os == 'macos-13' && 'x86_64-macos' || matrix.os == 'macos-14' && 'arm64-macos' || matrix.os == 'windows-latest' && 'x86_64-windows' }} wheel
     runs-on: ${{ matrix.os }}
     strategy:
@@ -50,8 +50,10 @@ jobs:
             YICES_VERSION=${{ env.YICES_VERSION }}
 
           # ---------- Linux ----------
-          # build once per container (Python version)
+          # build once per container
           CIBW_BEFORE_ALL_LINUX: |
+            set -euo pipefail
+
             SRC_DIR=/opt/yices-src
             BUILD_DIR=/opt/yices-build
 
@@ -69,7 +71,7 @@ jobs:
             popd
 
             dnf -y install gperf
-            git clone --depth=1 https://github.com/SRI-CSL/yices2 ${SRC_DIR}
+            git clone --depth=1 https://github.com/SRI-CSL/yices2 ${SRC_DIR}z
             pushd ${SRC_DIR}
               autoconf
               ./configure \
@@ -82,20 +84,26 @@ jobs:
               mv build ${BUILD_DIR}
             popd
 
+          # copy the build artifacts in each wheel
           CIBW_BEFORE_BUILD_LINUX: |
+            set -euo pipefail
+
             BUILD_DIR=/opt/yices-build
 
             mkdir -p yices2_binary/bin
-            mkdir -p yices2_binary/lib
             cp ${BUILD_DIR}/x86_64-pc-linux-gnu-release/bin/* yices2_binary/bin/
-            cp ${BUILD_DIR}/x86_64-pc-linux-gnu-release/lib/* yices2_binary/lib/
 
+            # copy only the shared object, skip static libs (libyices.a)
+            # copy under bin/, and let auditwheel place it where it needs to go
+            cp ${BUILD_DIR}/x86_64-pc-linux-gnu-release/lib/libyices.so.* yices2_binary/bin
 
           CIBW_REPAIR_WHEEL_COMMAND_LINUX: |
             bash -c "auditwheel repair --plat ${AUDITWHEEL_PLAT} -w {dest_dir} {wheel}"
 
           # ---------- macOS ----------
           CIBW_BEFORE_BUILD_MACOS: |
+            set -euo pipefail
+
             ARCH=$(uname -m)
             if [ "${ARCH}" = "arm64" ]; then
               ARCH=arm
@@ -123,6 +131,7 @@ jobs:
           # ---------- Windows ----------
           CIBW_BEFORE_BUILD_WINDOWS: >-
             set -euo pipefail
+
             URL="https://github.com/SRI-CSL/yices2/releases/download/Yices-${YICES_VERSION}/yices-${YICES_VERSION}-x86_64-unknown-mingw32-static-gmp.zip"
             echo "📦  Fetching ${URL}"
             curl -sSL --fail -o yices.zip "${URL}"
@@ -136,3 +145,41 @@ jobs:
         with:
           name: wheels-${{ matrix.os }}
           path: wheelhouse/*.whl
+
+# ────────────────────────────────────────────────
+  smoke-test:
+    name: smoke-test ${{ matrix.os }} / py${{ matrix.py }}
+    needs: build-wheels
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-14, windows-latest]
+        py: ['3.8', '3.12']
+    steps:
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.py }}
+
+      # download wheels from build job artefacts
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: wheels-*
+          merge-multiple: true   # puts them all under ./wheels
+
+      - name: install wheel and test
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m venv venv
+          source venv/bin/activate
+          pip install --no-index --find-links=./wheels yices2-binary
+          python - <<'PY'
+          import subprocess
+          from yices2_binary import BIN, LIB
+          print("BIN=", BIN, "LIB=", LIB)
+
+          out = subprocess.check_output(['yices-smt2', '--version'], text=True).strip()
+          assert out.startswith("Yices"), out
+          print("✔️  smoke test passed")
+          PY
