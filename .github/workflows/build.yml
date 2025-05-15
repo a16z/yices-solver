@@ -87,7 +87,7 @@ jobs:
             auditwheel repair --plat manylinux_2_17_x86_64 -w {dest_dir} {wheel}
 
           # ---------- macOS ----------
-          CIBW_BEFORE_BUILD_MACOS: >-
+          CIBW_BEFORE_BUILD_MACOS: |
             ARCH=$(uname -m)
             if [ "${ARCH}" = "arm64" ]; then
               ARCH=arm
