@@ -13,7 +13,7 @@ on:
 
 jobs:
   build-wheels:
-    name: ${{ matrix.os == 'ubuntu-latest' && 'x86_64-linux' || matrix.os == 'macos-13' && 'x86_64-macos' || matrix.os == 'macos-14' && 'arm64-macos' || matrix.os == 'windows-latest' && 'x86_64-windows' }} wheel
+    name: build ${{ matrix.os == 'ubuntu-latest' && 'x86_64-linux' || matrix.os == 'macos-13' && 'x86_64-macos' || matrix.os == 'macos-14' && 'arm64-macos' || matrix.os == 'windows-latest' && 'x86_64-windows' }} wheel
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -148,7 +148,7 @@ jobs:
 
 # ────────────────────────────────────────────────
   smoke-test:
-    name: smoke-test ${{ matrix.os }} / py${{ matrix.py }}
+    name: test ${{ matrix.os }} / py${{ matrix.py }}
     needs: build-wheels
     runs-on: ${{ matrix.os }}
     strategy:
