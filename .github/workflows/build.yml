@@ -15,7 +15,6 @@ jobs:
   wheels:
     name: ${{ matrix.os == 'ubuntu-latest' && 'x86_64-linux' || matrix.os == 'macos-13' && 'x86_64-macos' || matrix.os == 'macos-14' && 'arm64-macos' || matrix.os == 'windows-latest' && 'x86_64-windows' }} wheel
     runs-on: ${{ matrix.os }}
-    shell: bash        # ⬅️ makes every run/script block a Bash shell
     strategy:
       fail-fast: false
       matrix:
@@ -41,6 +40,7 @@ jobs:
       # ──────────────────────────────
       - name: cibuildwheel
         run: cibuildwheel --output-dir wheelhouse
+        shell: bash
         env:
           CIBW_BUILD_VERBOSITY: 2
           CIBW_SKIP: "pp* *musllinux* *i686*"          # keep the matrix lean
