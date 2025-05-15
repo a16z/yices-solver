@@ -57,6 +57,9 @@ jobs:
             SRC_DIR=/opt/yices-src
             BUILD_DIR=/opt/yices-build
 
+            # install build dependencies
+            dnf -y install gperf
+
             # build static GMP
             GMP_VERSION=6.3.0
             curl -sSL https://ftp.gnu.org/gnu/gmp/gmp-${GMP_VERSION}.tar.xz | tar -xJ
@@ -70,8 +73,7 @@ jobs:
               make install
             popd
 
-            dnf -y install gperf
-            git clone --depth=1 https://github.com/SRI-CSL/yices2 ${SRC_DIR}z
+            git clone --branch "Yices-${YICES_VERSION}" --depth 1 --single-branch https://github.com/SRI-CSL/yices2 "${SRC_DIR}"
             pushd ${SRC_DIR}
               autoconf
               ./configure \
