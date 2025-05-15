@@ -70,12 +70,16 @@ jobs:
             # cp /tmp/yices-${YICES_VERSION}/bin/* yices2_binary/bin/ &&
             # cp /tmp/yices-${YICES_VERSION}/lib/* yices2_binary/lib/
 
-              git clone --depth=1 https://github.com/SRI-CSL/yices2
-              cd yices2
-              ./configure --static --static-gmp --static-cudd
-              make -j$(nproc)
-              cp bin/yices-smt2 ../yices2_binary/bin/
-              cp lib/libyices.so  ../yices2_binary/lib/
+            git clone --depth=1 https://github.com/SRI-CSL/yices2 &&
+            cd yices2 &&
+            autoconf &&
+            ./configure &&
+            make show-config MODE=release &&
+            make -j$(nproc) static-bin &&
+            mkdir -p yices2_binary/bin &&
+            mkdir -p yices2_binary/lib &&
+            cp build/static_bin/* ../yices2_binary/bin/ &&
+            cp build/static_lib/* ../yices2_binary/lib/
 
 
           CIBW_REPAIR_WHEEL_COMMAND_LINUX: |
