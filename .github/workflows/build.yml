@@ -50,26 +50,10 @@ jobs:
             YICES_VERSION=${{ env.YICES_VERSION }}
 
           # ---------- Linux ----------
-          CIBW_BEFORE_BUILD_LINUX: |
-            ARCH=x86_64
-
-            # if [[ ${YICES_VERSION} == "2.6.5" ]]; then
-            #   EXTRA="-static-gmp"
-            # elif [[ ${YICES_VERSION} == "2.6.4" ]]; then
-            #   EXTRA=""
-            # else
-            #   echo "Unsupported Yices version: ${YICES_VERSION}"
-            #   exit 1
-            # fi
-
-            # URL=https://github.com/SRI-CSL/yices2/releases/download/Yices-${YICES_VERSION}/yices-${YICES_VERSION}-x86_64-pc-linux-gnu${EXTRA}.tar.gz &&
-            # echo "Downloading Yices from ${URL}" &&
-            # curl -sSL -o /tmp/yices.tgz ${URL} &&
-            # tar -C /tmp -xzf /tmp/yices.tgz &&
-            # mkdir -p yices2_binary/bin &&
-            # mkdir -p yices2_binary/lib &&
-            # cp /tmp/yices-${YICES_VERSION}/bin/* yices2_binary/bin/ &&
-            # cp /tmp/yices-${YICES_VERSION}/lib/* yices2_binary/lib/
+          # build once per container (Python version)
+          CIBW_BEFORE_ALL_LINUX: |
+            SRC_DIR=/opt/yices-src
+            BUILD_DIR=/opt/yices-build
 
             # build static GMP
             GMP_VERSION=6.3.0
@@ -84,19 +68,27 @@ jobs:
               make install
             popd
 
-            dnf -y install gperf &&
-            git clone --depth=1 https://github.com/SRI-CSL/yices2 &&
-            cd yices2 &&
-            autoconf &&
-            ./configure \
-              --with-pic-gmp=/usr/local/lib/libgmp.a \
-              --with-pic-gmp-include-dir=/usr/local/include &&
-            make show-config MODE=release &&
-            make -j$(nproc) &&
-            mkdir -p yices2_binary/bin &&
-            mkdir -p yices2_binary/lib &&
-            cp build/x86_64-pc-linux-gnu-release/bin/* yices2_binary/bin/ &&
-            cp build/x86_64-pc-linux-gnu-release/lib/* yices2_binary/lib/
+            dnf -y install gperf
+            git clone --depth=1 https://github.com/SRI-CSL/yices2 ${SRC_DIR}
+            pushd ${SRC_DIR}
+              autoconf
+              ./configure \
+                --with-pic-gmp=/usr/local/lib/libgmp.a \
+                --with-pic-gmp-include-dir=/usr/local/include
+              make show-config MODE=release
+              make -j$(nproc)
+
+              # stash the build artifacts in a shared location
+              mv build ${BUILD_DIR}
+            popd
+
+          CIBW_BEFORE_BUILD_LINUX: |
+            BUILD_DIR=/opt/yices-build
+
+            mkdir -p yices2_binary/bin
+            mkdir -p yices2_binary/lib
+            cp ${BUILD_DIR}/x86_64-pc-linux-gnu-release/bin/* yices2_binary/bin/
+            cp ${BUILD_DIR}/x86_64-pc-linux-gnu-release/lib/* yices2_binary/lib/
 
 
           CIBW_REPAIR_WHEEL_COMMAND_LINUX: |
