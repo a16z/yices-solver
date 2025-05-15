@@ -45,6 +45,7 @@ jobs:
           CIBW_BUILD_VERBOSITY: 2
           CIBW_SKIP: "pp* *musllinux* *i686*"          # keep the matrix lean
           CIBW_ARCHS_MACOS: "native"                   # x86_64 on macos-13, arm64 on macos-14
+          CIBW_MANYLINUX_X86_64_IMAGE: manylinux_2_28_x86_64
           CIBW_ENVIRONMENT: >-
             YICES_VERSION=${{ env.YICES_VERSION }}
 
@@ -70,7 +71,7 @@ jobs:
             # cp /tmp/yices-${YICES_VERSION}/bin/* yices2_binary/bin/ &&
             # cp /tmp/yices-${YICES_VERSION}/lib/* yices2_binary/lib/
 
-            yum -y install gperf &&
+            dnf -y install gperf &&
             git clone --depth=1 https://github.com/SRI-CSL/yices2 &&
             cd yices2 &&
             autoconf &&
@@ -84,7 +85,7 @@ jobs:
 
 
           CIBW_REPAIR_WHEEL_COMMAND_LINUX: |
-            auditwheel repair --plat manylinux_2_17_x86_64 -w {dest_dir} {wheel}
+            auditwheel repair -plat ${CIBW_MANYLINUX_X86_64_IMAGE} -w {dest_dir} {wheel}
 
           # ---------- macOS ----------
           CIBW_BEFORE_BUILD_MACOS: |
