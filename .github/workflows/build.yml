@@ -136,16 +136,25 @@ jobs:
             delocate-wheel --require-target-macos-version 11.0 -v -w {dest_dir} {wheel}
 
           # ---------- Windows ----------
-          CIBW_BEFORE_BUILD_WINDOWS: >-
-            set -euo pipefail
+          CIBW_BEFORE_BUILD_WINDOWS: |
+            bash -exc "
+              # fail on error, show commands (-e -x); treat unset vars as error (-u)
+              set -euo pipefail
 
-            URL="https://github.com/SRI-CSL/yices2/releases/download/Yices-${YICES_VERSION}/yices-${YICES_VERSION}-x86_64-unknown-mingw32-static-gmp.zip"
-            echo "📦  Fetching ${URL}"
-            curl -sSL --fail -o yices.zip "${URL}"
-            7z x yices.zip -oyices >/dev/null
-            mkdir -p yices2_binary/bin yices2_binary/lib
-            cp yices*/bin/*  yices2_binary/bin/
-            cp yices*/lib/*  yices2_binary/lib/
+              # download the pre-built Yices archive that matches the tag
+              URL=https://github.com/SRI-CSL/yices2/releases/download/Yices-${YICES_VERSION}/yices-${YICES_VERSION}-x86_64-unknown-mingw32-static-gmp.zip
+              echo \"📦  Fetching \$URL\"
+              curl -fsSL -o yices.zip \"\$URL\"
+
+              # unpack with 7-Zip (installed on the runner)
+              7z x yices.zip -oyices >/dev/null
+
+              # stage binaries & shared library into the wheel build tree
+              mkdir -p yices2_binary/bin yices2_binary/lib
+              cp yices*/bin/*  yices2_binary/bin/
+              cp yices*/lib/*  yices2_binary/lib/
+            "
+
           CIBW_REPAIR_WHEEL_COMMAND_WINDOWS: ""
 
       - uses: actions/upload-artifact@v4
