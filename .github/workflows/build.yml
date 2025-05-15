@@ -100,7 +100,7 @@ jobs:
 
 
           CIBW_REPAIR_WHEEL_COMMAND_LINUX: |
-            auditwheel repair -plat ${CIBW_MANYLINUX_X86_64_IMAGE} -w {dest_dir} {wheel}
+            auditwheel repair --plat ${CIBW_MANYLINUX_X86_64_IMAGE} -w {dest_dir} {wheel}
 
           # ---------- macOS ----------
           CIBW_BEFORE_BUILD_MACOS: |
