@@ -202,8 +202,8 @@ jobs:
           pip install --no-index --find-links=./wheels yices2-binary
           python - <<'PY'
           import subprocess
-          from yices2_binary import BIN, LIB
-          print("BIN=", BIN, "LIB=", LIB)
+          # from yices2_binary import BIN, LIB
+          # print("BIN=", BIN, "LIB=", LIB)
 
           out = subprocess.check_output(['yices-smt2', '--version'], text=True).strip()
           assert out.startswith("Yices"), out
