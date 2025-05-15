@@ -103,7 +103,7 @@ jobs:
             bash -c "auditwheel repair --plat ${AUDITWHEEL_PLAT} -w {dest_dir} {wheel}"
 
           # ---------- macOS ----------
-          CIBW_BEFORE_BUILD_MACOS: |
+          CIBW_BEFORE_ALL_MACOS: |
             set -euo pipefail
 
             ARCH=$(uname -m)
@@ -123,10 +123,15 @@ jobs:
             echo "Downloading Yices from ${URL}" &&
             curl -sSL -o /tmp/yices.tgz ${URL} &&
             tar -C /tmp -xzf /tmp/yices.tgz &&
+
+          CIBW_BEFORE_BUILD_MACOS: |
+            set -euo pipefail
+
             mkdir -p yices2_binary/bin &&
             mkdir -p yices2_binary/lib &&
             cp /tmp/yices-${YICES_VERSION}/bin/* yices2_binary/bin/ &&
             cp /tmp/yices-${YICES_VERSION}/lib/* yices2_binary/lib/
+
           CIBW_REPAIR_WHEEL_COMMAND_MACOS: |
             delocate-wheel --require-target-macos-version 11.0 -v -w {dest_dir} {wheel}
 
