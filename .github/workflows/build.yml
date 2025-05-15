@@ -15,6 +15,7 @@ jobs:
   wheels:
     name: ${{ matrix.os == 'ubuntu-latest' && 'x86_64-linux' || matrix.os == 'macos-13' && 'x86_64-macos' || matrix.os == 'macos-14' && 'arm64-macos' || matrix.os == 'windows-latest' && 'x86_64-windows' }} wheel
     runs-on: ${{ matrix.os }}
+    shell: bash        # ⬅️ makes every run/script block a Bash shell
     strategy:
       fail-fast: false
       matrix:
@@ -51,31 +52,37 @@ jobs:
           CIBW_BEFORE_BUILD_LINUX: >-
             ARCH=x86_64
 
-            if [[ ${YICES_VERSION} == "2.6.5" ]]; then
-              EXTRA="-static-gmp"
-            elif [[ ${YICES_VERSION} == "2.6.4" ]]; then
-              EXTRA=""
-            else
-              echo "Unsupported Yices version: ${YICES_VERSION}"
-              exit 1
-            fi
+            # if [[ ${YICES_VERSION} == "2.6.5" ]]; then
+            #   EXTRA="-static-gmp"
+            # elif [[ ${YICES_VERSION} == "2.6.4" ]]; then
+            #   EXTRA=""
+            # else
+            #   echo "Unsupported Yices version: ${YICES_VERSION}"
+            #   exit 1
+            # fi
 
-            URL=https://github.com/SRI-CSL/yices2/releases/download/Yices-${YICES_VERSION}/yices-${YICES_VERSION}-x86_64-pc-linux-gnu${EXTRA}.tar.gz &&
-            echo "Downloading Yices from ${URL}" &&
-            curl -sSL -o /tmp/yices.tgz ${URL} &&
-            tar -C /tmp -xzf /tmp/yices.tgz &&
-            mkdir -p yices2_binary/bin &&
-            mkdir -p yices2_binary/lib &&
-            cp /tmp/yices-${YICES_VERSION}/bin/* yices2_binary/bin/ &&
-            cp /tmp/yices-${YICES_VERSION}/lib/* yices2_binary/lib/
+            # URL=https://github.com/SRI-CSL/yices2/releases/download/Yices-${YICES_VERSION}/yices-${YICES_VERSION}-x86_64-pc-linux-gnu${EXTRA}.tar.gz &&
+            # echo "Downloading Yices from ${URL}" &&
+            # curl -sSL -o /tmp/yices.tgz ${URL} &&
+            # tar -C /tmp -xzf /tmp/yices.tgz &&
+            # mkdir -p yices2_binary/bin &&
+            # mkdir -p yices2_binary/lib &&
+            # cp /tmp/yices-${YICES_VERSION}/bin/* yices2_binary/bin/ &&
+            # cp /tmp/yices-${YICES_VERSION}/lib/* yices2_binary/lib/
+
+              git clone --depth=1 https://github.com/SRI-CSL/yices2
+              cd yices2
+              ./configure --static --static-gmp --static-cudd
+              make -j$(nproc)
+              cp bin/yices-smt2 ../yices2_binary/bin/
+              cp lib/libyices.so  ../yices2_binary/lib/
+
 
           CIBW_REPAIR_WHEEL_COMMAND_LINUX: |
-            auditwheel repair --plat manylinux_2_28_x86_64 -w {dest_dir} {wheel}
+            auditwheel repair --plat manylinux_2_17_x86_64 -w {dest_dir} {wheel}
 
           # ---------- macOS ----------
           CIBW_BEFORE_BUILD_MACOS: >-
-            set -euo pipefail
-
             ARCH=$(uname -m)
             [[ "${ARCH}" == "arm64" ]] && ARCH=arm
 
@@ -100,12 +107,14 @@ jobs:
 
           # ---------- Windows ----------
           CIBW_BEFORE_BUILD_WINDOWS: >-
-            curl -sSL --fail -o C:\yices.zip https://github.com/SRI-CSL/yices2/releases/download/Yices-${env:YICES_VERSION}/yices-${env:YICES_VERSION}-x86_64-unknown-mingw32-static-gmp.zip &&
-            7z x C:\yices.zip -oC:\yices >NUL &&
-            mkdir yices2_binary\bin &&
-            mkdir yices2_binary\lib &&
-            copy C:\yices\yices-${env:YICES_VERSION}\bin\* yices2_binary\bin\ &&
-            copy C:\yices\yices-${env:YICES_VERSION}\lib\* yices2_binary\lib\
+            set -euo pipefail
+            URL="https://github.com/SRI-CSL/yices2/releases/download/Yices-${YICES_VERSION}/yices-${YICES_VERSION}-x86_64-unknown-mingw32-static-gmp.zip"
+            echo "📦  Fetching ${URL}"
+            curl -sSL --fail -o yices.zip "${URL}"
+            7z x yices.zip -oyices >/dev/null
+            mkdir -p yices2_binary/bin yices2_binary/lib
+            cp yices*/bin/*  yices2_binary/bin/
+            cp yices*/lib/*  yices2_binary/lib/
           CIBW_REPAIR_WHEEL_COMMAND_WINDOWS: ""
 
       - uses: actions/upload-artifact@v4
