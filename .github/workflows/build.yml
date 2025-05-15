@@ -136,9 +136,8 @@ jobs:
             delocate-wheel --require-target-macos-version 11.0 -v -w {dest_dir} {wheel}
 
           # ---------- Windows ----------
-          CIBW_BEFORE_BUILD_WINDOWS: |
+          CIBW_BEFORE_ALL_WINDOWS: |
             bash -exc "
-              # fail on error, show commands (-e -x); treat unset vars as error (-u)
               set -euo pipefail
 
               # download the pre-built Yices archive that matches the tag
@@ -148,6 +147,11 @@ jobs:
 
               # unpack with 7-Zip (installed on the runner)
               7z x yices.zip -oyices >/dev/null
+            "
+
+          CIBW_BEFORE_BUILD_WINDOWS: |
+            bash -exc "
+              set -euo pipefail
 
               # stage binaries & shared library into the wheel build tree
               mkdir -p yices2_binary/bin yices2_binary/lib
