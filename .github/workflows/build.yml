@@ -84,7 +84,9 @@ jobs:
           # ---------- macOS ----------
           CIBW_BEFORE_BUILD_MACOS: >-
             ARCH=$(uname -m)
-            [[ "${ARCH}" == "arm64" ]] && ARCH=arm
+            if [ "${ARCH}" = "arm64" ]; then
+              ARCH=arm
+            fi
 
             case "${YICES_VERSION}-${ARCH}" in
               2.6.5-x86_64) OS=apple-darwin21.6.0 ; EXTRA="-static-gmp" ;;
