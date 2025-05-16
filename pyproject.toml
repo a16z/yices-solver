@@ -42,8 +42,6 @@ yices_solver = [
   "yices_solver/scripts/yices-smt2",
   "yices_solver/scripts/yices-smt",
   "yices_solver/scripts/yices-sat",
-  "yices_solver/scripts/yices-sat-new",
-  "yices_solver/scripts/yices-smtcomp",
 ]
 
 [tool.setuptools_scm]
