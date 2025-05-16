@@ -23,9 +23,6 @@ classifiers = [
   "Operating System :: Microsoft :: Windows"
 ]
 
-[project.scripts]
-yices-smt2 = "yices2_binary:_run_cli"
-
 [tool.setuptools]
 include-package-data = true
 package-dir = {"" = "."}
