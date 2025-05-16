@@ -49,6 +49,7 @@ jobs:
         git clone --depth 1 --branch "Yices-${YICES_VERSION}" \
           https://github.com/SRI-CSL/yices2 /tmp/yices
         pushd /tmp/yices
+          autoconf
           ./configure \
             --with-pic-gmp=/usr/local/lib/libgmp.a \
             --with-pic-gmp-include-dir=/usr/local/include
