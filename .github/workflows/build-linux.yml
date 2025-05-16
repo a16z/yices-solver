@@ -80,7 +80,7 @@ jobs:
       run: |
         python -m pip install --upgrade build
         python -m build --wheel \
-          --config-setting "--plat-name=manylinux_2_28_x86_64 --no-universal"
+          --config-setting=--plat-name=manylinux_2_28_x86_64 -C--no-universal
 
     # repair / tag the wheel for manylinux_2_28
     - name: Auditwheel repair
