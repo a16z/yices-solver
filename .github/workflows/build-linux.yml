@@ -68,7 +68,13 @@ jobs:
       shell: bash
       run: |
         set -euo pipefail
+
         mkdir -p yices_solver/scripts yices_solver/lib
+
+        # list the binaries
+        ls -la ${BUILD_DIR}/x86_64-pc-linux-gnu-release/bin/*
+
+        # copy the binaries
         cp ${BUILD_DIR}/x86_64-pc-linux-gnu-release/bin/* yices_solver/scripts/
 
         # copy only the shared object, skip static libs (libyices.a)
@@ -89,7 +95,13 @@ jobs:
         python -m pip install --upgrade auditwheel
         auditwheel repair -w dist/ --plat manylinux_2_28_x86_64 dist/*.whl
 
-    # 📦  upload the finished wheel
+    # list the wheel contents
+    - name: List wheel contents
+      shell: bash
+      run: |
+        unzip -l dist/*.whl
+
+    # upload the finished wheel
     - uses: actions/upload-artifact@v4
       with:
         name: wheel-${{ runner.os }}
