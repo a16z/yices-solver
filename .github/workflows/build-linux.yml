@@ -69,16 +69,18 @@ jobs:
       run: |
         set -euo pipefail
 
+        DIST_DIR=${BUILD_DIR}/x86_64-pc-linux-gnu-release/dist
+
         mkdir -p yices_solver/scripts yices_solver/lib
 
         # list the binaries
-        ls -la ${BUILD_DIR}/x86_64-pc-linux-gnu-release/bin/*
+        ls -la ${DIST_DIR}/bin/*
 
         # copy the binaries
-        cp ${BUILD_DIR}/x86_64-pc-linux-gnu-release/bin/* yices_solver/scripts/
+        cp ${DIST_DIR}/bin/* yices_solver/scripts/
 
         # copy only the shared object, skip static libs (libyices.a)
-        cp ${BUILD_DIR}/x86_64-pc-linux-gnu-release/lib/libyices.so.* yices_solver/lib/
+        cp ${DIST_DIR}/lib/libyices.so.* yices_solver/lib/
 
     # build the wheel
     - name: Build wheel
