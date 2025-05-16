@@ -7,7 +7,7 @@ requires = [
 build-backend = "setuptools.build_meta"
 
 [project]
-name            = "yices2-binary"
+name            = "yices-solver"
 dynamic         = ["version"]          # setuptools-scm paints this in
 description     = "Platform-tagged wheels bundling the Yices 2 SMT solver (CLI + shared library)"
 readme          = "README.md"
@@ -29,10 +29,10 @@ package-dir = {"" = "."}
 
 [tool.setuptools.packages.find]
 where   = ["."]
-include = ["yices2_binary*"]
+include = ["yices_solver*"]
 
 [tool.setuptools.package-data]
-yices2_binary = [
+yices_solver = [
   "lib/*",
   "scripts/*"
 ]
