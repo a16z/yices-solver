@@ -27,19 +27,14 @@ classifiers = [
 include-package-data = true
 package-dir = {"" = "."}
 
-ext-modules = [
-  { name = "_bootstrap", sources = ["src/_bootstrap.c"] }
-]
-
 [tool.setuptools.packages.find]
 where   = ["."]
 include = ["yices2_binary*"]
 
 [tool.setuptools.package-data]
 yices2_binary = [
-  "bin/*",
   "lib/*",
-  "licenses/*"
+  "scripts/*"
 ]
 
 [tool.setuptools_scm]

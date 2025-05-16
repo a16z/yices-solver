@@ -92,12 +92,12 @@ jobs:
 
             BUILD_DIR=/opt/yices-build
 
-            mkdir -p yices2_binary/bin
-            cp ${BUILD_DIR}/x86_64-pc-linux-gnu-release/bin/* yices2_binary/bin/
+            mkdir -p yices2_binary/scripts yices2_binary/lib
+            cp ${BUILD_DIR}/x86_64-pc-linux-gnu-release/bin/* yices2_binary/scripts/
 
             # copy only the shared object, skip static libs (libyices.a)
             # copy under bin/, and let auditwheel place it where it needs to go
-            cp ${BUILD_DIR}/x86_64-pc-linux-gnu-release/lib/libyices.so.* yices2_binary/bin
+            cp ${BUILD_DIR}/x86_64-pc-linux-gnu-release/lib/libyices.so.* yices2_binary/lib
 
           CIBW_REPAIR_WHEEL_COMMAND_LINUX: |
             bash -c "auditwheel repair --plat ${AUDITWHEEL_PLAT} -w {dest_dir} {wheel}"
@@ -127,9 +127,8 @@ jobs:
           CIBW_BEFORE_BUILD_MACOS: |
             set -euo pipefail
 
-            mkdir -p yices2_binary/bin &&
-            mkdir -p yices2_binary/lib &&
-            cp /tmp/yices-${YICES_VERSION}/bin/* yices2_binary/bin/ &&
+            mkdir -p yices2_binary/scripts yices2_binary/lib
+            cp /tmp/yices-${YICES_VERSION}/bin/* yices2_binary/scripts/
             cp /tmp/yices-${YICES_VERSION}/lib/* yices2_binary/lib/
 
           CIBW_REPAIR_WHEEL_COMMAND_MACOS: |
@@ -158,8 +157,9 @@ jobs:
 
               # stage binaries & shared library into the wheel build tree
               # note: libyices.dll is in bin/
-              mkdir -p yices2_binary/bin yices2_binary/lib
-              cp yices*/bin/*  yices2_binary/bin/
+              mkdir -p yices2_binary/scripts yices2_binary/lib
+              cp yices*/bin/*  yices2_binary/scripts/
+              mv yices*/lib/libyices.dll yices2_binary/lib/
 
               # skip this step, only contains libyices.a and libyices.dll.a
               # cp yices*/lib/libyices.so.* yices2_binary/bin/
