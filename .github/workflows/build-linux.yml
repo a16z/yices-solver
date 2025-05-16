@@ -46,8 +46,13 @@ jobs:
       shell: bash
       run: |
         set -euo pipefail
+
+        # install build dependencies
+        dnf -y install gperf
+
         git clone --depth 1 --branch "Yices-${YICES_VERSION}" \
           https://github.com/SRI-CSL/yices2 /tmp/yices
+
         pushd /tmp/yices
           autoconf
           ./configure \
