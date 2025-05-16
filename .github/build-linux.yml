@@ -1,0 +1,127 @@
+name: build-linux-wheel
+
+on:
+  workflow_dispatch:
+    inputs:
+      yices_version:
+        description: "Upstream Yices version (e.g. 2.6.5)"
+        required: true
+  push:
+    tags: [ "*.*.*" ]  # e.g. "2.6.5"
+    branches:
+      - main
+
+jobs:
+  build-wheel:
+    runs-on: ubuntu-latest            # host runner
+    container:                        # inside manylinux_2_28 tool-chain
+      image: quay.io/pypa/manylinux_2_28_x86_64
+    env:
+      YICES_VERSION: ${{ github.event.inputs.yices_version || (github.ref_name != 'main' && github.ref_name) || '2.6.4' }}
+      BUILD_DIR: /tmp/yices-build
+
+    steps:
+    - uses: actions/checkout@v4
+
+    # add a modern Python (manylinux ships 3.11+ in /opt/python)
+    - name: Use CPython 3.11 from manylinux toolchain
+      run: |
+        echo "/opt/python/cp311-cp311/bin" >> $GITHUB_PATH
+
+    # build static+PIC GMP, install to /usr/local
+    - name: Build GMP
+      shell: bash
+      run: |
+        set -euo pipefail
+        GMP_VERSION=6.3.0
+        curl -sSL "https://ftp.gnu.org/gnu/gmp/gmp-${GMP_VERSION}.tar.xz" | tar -xJ
+        pushd "gmp-${GMP_VERSION}"
+          ./configure --disable-shared --enable-static --with-pic --prefix=/usr/local
+          make -j"$(nproc)"
+          make install
+        popd
+
+    # build Yices from the requested tag
+    - name: Build Yices
+      shell: bash
+      run: |
+        set -euo pipefail
+        git clone --depth 1 --branch "Yices-${YICES_VERSION}" \
+          https://github.com/SRI-CSL/yices2 /tmp/yices
+        pushd /tmp/yices
+          ./configure \
+            --with-pic-gmp=/usr/local/lib/libgmp.a \
+            --with-pic-gmp-include-dir=/usr/local/include
+          make show-config MODE=release
+          make -j"$(nproc)"
+          mv build ${BUILD_DIR}
+        popd
+
+    # stage artefacts into the Python package tree
+    - name: Stage artefacts
+      shell: bash
+      run: |
+        set -euo pipefail
+        mkdir -p yices_solver/scripts yices_solver/lib
+        cp ${BUILD_DIR}/x86_64-pc-linux-gnu-release/bin/* yices_solver/scripts/
+
+        # copy only the shared object, skip static libs (libyices.a)
+        cp ${BUILD_DIR}/x86_64-pc-linux-gnu-release/lib/libyices.so.* yices_solver/lib/
+
+    # build the wheel
+    - name: Build wheel
+      shell: bash
+      run: |
+        python -m pip install --upgrade build
+        python -m build --wheel
+
+    # repair / tag the wheel for manylinux_2_28
+    - name: Auditwheel repair
+      shell: bash
+      run: |
+        python -m pip install --upgrade auditwheel
+        auditwheel repair -w dist/ --plat manylinux_2_28_x86_64 dist/*.whl
+
+    # 📦  upload the finished wheel
+    - uses: actions/upload-artifact@v4
+      with:
+        name: wheel-linux
+        path: dist/*manylinux_2_28_x86_64.whl
+
+  smoke-test:
+    name: test ${{ matrix.os }} / py${{ matrix.py }}
+    needs: build-wheels
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-14, windows-latest]
+        py: ['3.9', '3.10', '3.11', '3.12', '3.13']
+    steps:
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.py }}
+
+      # download wheels from build job artefacts
+      - uses: actions/download-artifact@v4
+        with:
+          name: wheels-${{ matrix.os }}
+          path: ./wheels
+
+      - name: install wheel and test
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          python -m venv venv
+          source venv/bin/activate
+
+          pip install --no-index --find-links=./wheels yices-solver
+
+          python - <<'PY'
+          import subprocess
+
+          out = subprocess.check_output(['yices-smt2', '--version'], text=True).strip()
+          assert out.startswith("Yices"), out
+          print("✔️  smoke test passed")
+          PY
