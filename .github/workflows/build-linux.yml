@@ -90,7 +90,7 @@ jobs:
 
   smoke-test:
     name: test ${{ matrix.os }} / py${{ matrix.py }}
-    needs: build-wheels
+    needs: build-wheel
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
