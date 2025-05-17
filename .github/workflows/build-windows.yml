@@ -101,7 +101,7 @@ jobs:
           set -euo pipefail
 
           python -m venv venv
-          source venv/bin/activate
+          . venv/Scripts/activate
 
           pip install --no-index --find-links=./wheels yices-solver
 
