@@ -86,7 +86,7 @@ jobs:
     # upload the finished wheel
     - uses: actions/upload-artifact@v4
       with:
-        name: wheel-${{ runner.os }}
+        name: wheel-${{ matrix.os }}
         path: dist/*.whl
 
   smoke-test:
@@ -106,7 +106,7 @@ jobs:
       # download wheels from build job artefacts
       - uses: actions/download-artifact@v4
         with:
-          name: wheel-${{ runner.os }}
+          name: wheel-${{ matrix.os }}
           path: ./wheels
 
       - name: Install wheel and test
