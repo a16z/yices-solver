@@ -115,7 +115,7 @@ jobs:
             try:
               cmd = [binary_name, '--version']
               out = subprocess.check_output(cmd, text=True, stderr=subprocess.STDOUT).strip()
-              print(indent(out, \'  \'))
+              print(indent(out, "  "))
               if out.startswith("Yices"):
                 print(f"✔️ {binary_name} OK")
               else:
