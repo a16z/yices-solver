@@ -58,10 +58,10 @@ jobs:
         mkdir -p yices_solver/bin yices_solver/lib
 
         # note: libyices.dll is in bin/
-        cp /tmp/yices-${YICES_VERSION}/bin/* yices_solver/bin/
+        cp yices-${YICES_VERSION}/bin/* yices_solver/bin/
 
         # skip this step, only contains libyices.a and libyices.dll.a
-        # cp /tmp/yices-${YICES_VERSION}/lib/* yices_solver/lib/
+        # cp yices-${YICES_VERSION}/lib/* yices_solver/lib/
 
 
     # build the wheel
