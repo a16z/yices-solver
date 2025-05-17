@@ -38,10 +38,7 @@ yices_solver = [
 
 [tool.setuptools.data-files]
 "bin" = [
-  "yices_solver/bin/yices",
-  "yices_solver/bin/yices-smt2",
-  "yices_solver/bin/yices-smt",
-  "yices_solver/bin/yices-sat",
+  "yices_solver/bin/*",
 ]
 
 [tool.setuptools_scm]
