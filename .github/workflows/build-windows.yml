@@ -109,7 +109,7 @@ jobs:
           import subprocess
           from textwrap import indent
 
-          binaries_to_test = ['yices', 'yices-smt2', 'yices-sat']
+          binaries_to_test = ['yices.exe', 'yices-sat.exe', 'yices-smt.exe', 'yices-smt2.exe']
           for binary_name in binaries_to_test:
             print(f"Testing {binary_name}...")
             try:
