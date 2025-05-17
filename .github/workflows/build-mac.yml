@@ -1,4 +1,4 @@
-name: build-linux-wheel
+name: build-macos-wheel
 
 on:
   workflow_dispatch:
@@ -13,9 +13,11 @@ on:
 
 jobs:
   build-wheel:
-    runs-on: ubuntu-latest            # host runner
-    container:                        # inside manylinux_2_28 tool-chain
-      image: quay.io/pypa/manylinux_2_28_x86_64
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-13, macos-latest]
     env:
       YICES_VERSION: ${{ github.event.inputs.yices_version || (github.ref_name != 'main' && github.ref_name) || '2.6.4' }}
       BUILD_DIR: /tmp/yices-build
@@ -23,45 +25,33 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
-    # add a modern Python (manylinux ships 3.11+ in /opt/python)
-    - name: Use CPython 3.11 from manylinux toolchain
-      run: |
-        echo "/opt/python/cp311-cp311/bin" >> $GITHUB_PATH
+    - uses: actions/setup-python@v5
+      with:
+        python-version: 3.12
 
-    # build static+PIC GMP, install to /usr/local
-    - name: Build GMP
-      shell: bash
-      run: |
-        set -euo pipefail
-        GMP_VERSION=6.3.0
-        curl -sSL "https://ftp.gnu.org/gnu/gmp/gmp-${GMP_VERSION}.tar.xz" | tar -xJ
-        pushd "gmp-${GMP_VERSION}"
-          ./configure --disable-shared --enable-static --with-pic --prefix=/usr/local
-          make -j"$(nproc)"
-          make install
-        popd
-
-    # build Yices from the requested tag
-    - name: Build Yices
+    # download yices release
+    - name: Download Yices release
       shell: bash
       run: |
         set -euo pipefail
 
-        # install build dependencies
-        dnf -y install gperf
+        ARCH=$(uname -m)
+        if [ "${ARCH}" = "arm64" ]; then
+          ARCH=arm
+        fi
 
-        git clone --depth 1 --branch "Yices-${YICES_VERSION}" \
-          https://github.com/SRI-CSL/yices2 /tmp/yices
+        case "${YICES_VERSION}-${ARCH}" in
+          2.6.5-x86_64) OS=apple-darwin21.6.0 ; EXTRA="-static-gmp" ;;
+          2.6.5-arm)    OS=apple-darwin22.6.0 ; EXTRA="-static-gmp" ;;
+          2.6.4-x86_64) OS=apple-darwin20.6.0 ; EXTRA=""           ;;
+          2.6.4-arm)    OS=apple-darwin20.6.0 ; EXTRA=""           ;;
+          *) echo "Unsupported Yices version/arch: ${YICES_VERSION}-${ARCH}" >&2 ; exit 1 ;;
+        esac
 
-        pushd /tmp/yices
-          autoconf
-          ./configure \
-            --with-pic-gmp=/usr/local/lib/libgmp.a \
-            --with-pic-gmp-include-dir=/usr/local/include
-          make show-config MODE=release
-          make -j"$(nproc)"
-          mv build ${BUILD_DIR}
-        popd
+        URL=https://github.com/SRI-CSL/yices2/releases/download/Yices-${YICES_VERSION}/yices-${YICES_VERSION}-${ARCH}-${OS}${EXTRA}.tar.gz &&
+        echo "Downloading Yices from ${URL}" &&
+        curl -sSL -o /tmp/yices.tgz ${URL} &&
+        tar -C /tmp -xzf /tmp/yices.tgz
 
     # stage artefacts into the Python package tree
     - name: Stage artefacts
@@ -69,53 +59,44 @@ jobs:
       run: |
         set -euo pipefail
 
-        DIST_DIR=${BUILD_DIR}/x86_64-pc-linux-gnu-release/dist
-
         mkdir -p yices_solver/bin yices_solver/lib
 
-        # list the binaries
-        ls -la ${DIST_DIR}/bin/*
+        cp /tmp/yices-${YICES_VERSION}/bin/* yices_solver/bin/
+        cp /tmp/yices-${YICES_VERSION}/lib/* yices_solver/lib/
 
-        # copy the binaries
-        cp ${DIST_DIR}/bin/* yices_solver/bin/
-
-        # copy only the shared object, skip static libs (libyices.a)
-        cp ${DIST_DIR}/lib/libyices.so.* yices_solver/lib/
 
     # build the wheel
     - name: Build wheel
       shell: bash
       run: |
         python -m pip install --upgrade build
-        python -m build --wheel \
-          --config-setting=--plat-name=manylinux_2_28_x86_64 -C--no-universal
+        python -m build --wheel
 
-    # repair / tag the wheel for manylinux_2_28
-    - name: Auditwheel repair
+        # try to see if the platform tag can be figured out automatically
+        # python -m build --wheel \
+        #  --config-setting=--plat-name=macosx_10_15_x86_64 -C--no-universal
+
+    # repair / tag the wheel for macos
+    - name: Delocate wheel
       shell: bash
       run: |
-        python -m pip install --upgrade auditwheel
-        auditwheel repair -w dist/ --plat manylinux_2_28_x86_64 dist/*.whl
-
-    # # list the wheel contents
-    # - name: List wheel contents
-    #   shell: bash
-    #   run: |
-    #     unzip -l dist/*.whl
+        python -m pip install --upgrade delocate
+        delocate-wheel --require-target-macos-version 11.0 -v -w dist/ dist/*.whl
 
     # upload the finished wheel
     - uses: actions/upload-artifact@v4
       with:
         name: wheel-${{ runner.os }}
-        path: dist/*manylinux_2_28_x86_64.whl
+        path: dist/*.whl
 
   smoke-test:
-    name: test ubuntu-latest / py${{ matrix.py }}
+    name: test ${{ matrix.os }} / py${{ matrix.py }}
     needs: build-wheel
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
+        os: [macos-13, macos-latest]
         py: ['3.9', '3.10', '3.11', '3.12', '3.13']
     steps:
       - uses: actions/setup-python@v5
