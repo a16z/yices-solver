@@ -20,7 +20,6 @@ jobs:
         os: [macos-13, macos-latest]
     env:
       YICES_VERSION: ${{ github.event.inputs.yices_version || (github.ref_name != 'main' && github.ref_name) || '2.6.4' }}
-      BUILD_DIR: /tmp/yices-build
 
     steps:
     - uses: actions/checkout@v4

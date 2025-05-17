@@ -20,7 +20,6 @@ jobs:
         os: [windows-latest]
     env:
       YICES_VERSION: ${{ github.event.inputs.yices_version || (github.ref_name != 'main' && github.ref_name) || '2.6.4' }}
-      BUILD_DIR: /tmp/yices-build
 
     steps:
     - uses: actions/checkout@v4
@@ -58,10 +57,10 @@ jobs:
         mkdir -p yices_solver/bin yices_solver/lib
 
         # note: libyices.dll is in bin/
-        cp yices-${YICES_VERSION}/bin/* yices_solver/bin/
+        cp yices*/bin/* yices_solver/bin/
 
         # skip this step, only contains libyices.a and libyices.dll.a
-        # cp yices-${YICES_VERSION}/lib/* yices_solver/lib/
+        # cp yices*/lib/* yices_solver/lib/
 
 
     # build the wheel
