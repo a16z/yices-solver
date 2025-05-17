@@ -105,6 +105,9 @@ jobs:
 
           pip install --no-index --find-links=./wheels yices-solver
 
+          # list venv/Scripts/
+          ls -la venv/Scripts/
+
           python - <<\'PY\'
           import subprocess
           from textwrap import indent
