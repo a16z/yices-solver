@@ -46,7 +46,7 @@ jobs:
         URL=https://github.com/SRI-CSL/yices2/releases/download/Yices-${YICES_VERSION}/yices-${YICES_VERSION}-x86_64-unknown-mingw32-static-gmp.zip
         echo "Downloading Yices from ${URL}" &&
         curl -sSL -o yices.zip ${URL} &&
-        7z x yices.zip -oyices >/dev/null
+        7z x yices.zip -o /tmp
 
     # stage artefacts into the Python package tree
     - name: Stage artefacts
@@ -56,12 +56,9 @@ jobs:
 
         mkdir -p yices_solver/bin yices_solver/lib
 
+        # don't copy from lib/, it only contains libyices.a and libyices.dll.a
         # note: libyices.dll is in bin/
-        cp yices*/bin/* yices_solver/bin/
-
-        # skip this step, only contains libyices.a and libyices.dll.a
-        # cp yices*/lib/* yices_solver/lib/
-
+        cp /tmp/yices-${YICES_VERSION}/bin/* yices_solver/bin/
 
     # build the wheel
     - name: Build wheel
