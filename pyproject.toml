@@ -37,11 +37,11 @@ yices_solver = [
 ]
 
 [tool.setuptools.data-files]
-"scripts" = [
-  "yices_solver/scripts/yices",
-  "yices_solver/scripts/yices-smt2",
-  "yices_solver/scripts/yices-smt",
-  "yices_solver/scripts/yices-sat",
+"bin" = [
+  "yices_solver/bin/yices",
+  "yices_solver/bin/yices-smt2",
+  "yices_solver/bin/yices-smt",
+  "yices_solver/bin/yices-sat",
 ]
 
 [tool.setuptools_scm]

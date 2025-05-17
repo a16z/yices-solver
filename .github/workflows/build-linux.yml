@@ -71,13 +71,13 @@ jobs:
 
         DIST_DIR=${BUILD_DIR}/x86_64-pc-linux-gnu-release/dist
 
-        mkdir -p yices_solver/scripts yices_solver/lib
+        mkdir -p yices_solver/bin yices_solver/lib
 
         # list the binaries
         ls -la ${DIST_DIR}/bin/*
 
         # copy the binaries
-        cp ${DIST_DIR}/bin/* yices_solver/scripts/
+        cp ${DIST_DIR}/bin/* yices_solver/bin/
 
         # copy only the shared object, skip static libs (libyices.a)
         cp ${DIST_DIR}/lib/libyices.so.* yices_solver/lib/
