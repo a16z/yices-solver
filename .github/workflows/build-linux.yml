@@ -97,11 +97,11 @@ jobs:
         python -m pip install --upgrade auditwheel
         auditwheel repair -w dist/ --plat manylinux_2_28_x86_64 dist/*.whl
 
-    # list the wheel contents
-    - name: List wheel contents
-      shell: bash
-      run: |
-        unzip -l dist/*.whl
+    # # list the wheel contents
+    # - name: List wheel contents
+    #   shell: bash
+    #   run: |
+    #     unzip -l dist/*.whl
 
     # upload the finished wheel
     - uses: actions/upload-artifact@v4
