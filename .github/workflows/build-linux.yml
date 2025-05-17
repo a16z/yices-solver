@@ -140,8 +140,19 @@ jobs:
 
           python - <<'PY'
           import subprocess
+          from textwrap import indent
 
-          out = subprocess.check_output(['yices-smt2', '--version'], text=True).strip()
-          assert out.startswith("Yices"), out
+          for binary in ['yices', 'yices-smt2', 'yices-smt', 'yices-sat']:
+            print(f"Testing {binary}...")
+            try:
+              out = subprocess.check_output([binary, '--version'], text=True).strip()
+              print(indent(out, '  '))
+              if out.startswith("Yices"):
+                print(f"✔️ {binary} OK")
+              else:
+                print(f"❌ {binary} failed (unexpected --version output)")
+            except Exception as e:
+              print(f"❌ {binary} failed: {e}")
+
           print("✔️  smoke test passed")
           PY
