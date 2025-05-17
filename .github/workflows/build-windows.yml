@@ -110,10 +110,14 @@ jobs:
 
           python - <<\'PY\'
           import subprocess
+          from pathlib import Path
           from textwrap import indent
+
+          venv_path = Path(os.environ["VIRTUAL_ENV"])
 
           binaries_to_test = ['yices.exe', 'yices-sat.exe', 'yices-smt.exe', 'yices-smt2.exe']
           for binary_name in binaries_to_test:
+            binary_name = str(venv_path / "Scripts" / binary_name)
             print(f"Testing {binary_name}...")
             try:
               cmd = [binary_name, '--version']
