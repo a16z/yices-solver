@@ -97,11 +97,20 @@ jobs:
         python -m pip install --upgrade auditwheel
         auditwheel repair -w dist/ --plat manylinux_2_28_x86_64 dist/*.whl
 
-    # # list the wheel contents
-    # - name: List wheel contents
-    #   shell: bash
-    #   run: |
-    #     unzip -l dist/*.whl
+    # inspect the wheel contents
+    - name: Inspect wheel contents
+      shell: bash
+      run: |
+        # Install wheel package and tree
+        python -m pip install wheel
+        yum install -y tree
+
+        # Unpack the wheel
+        wheel unpack dist/*.whl
+
+        # Show the contents using tree
+        echo "Wheel contents:"
+        tree yices_solver-*
 
     # upload the finished wheel
     - uses: actions/upload-artifact@v4
@@ -137,6 +146,8 @@ jobs:
           source venv/bin/activate
 
           pip install --no-index --find-links=./wheels yices-solver
+
+          wheel unpack dist/*.whl
 
           python - <<'PY'
           import subprocess
