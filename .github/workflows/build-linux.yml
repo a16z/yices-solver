@@ -146,6 +146,13 @@ jobs:
 
           pip install --no-index --find-links=./wheels yices-solver
 
+      - name: Inspect venv
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          ls -la venv/bin/
+
       - name: Test binaries
         shell: bash
         run: |
