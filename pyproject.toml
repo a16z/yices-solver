@@ -26,6 +26,7 @@ classifiers = [
 [tool.setuptools]
 include-package-data = false  # we want data-files instead
 package-dir = {"" = "."}
+script-files = ["yices_solver/bin/*"]
 
 [tool.setuptools.packages.find]
 where   = ["."]
@@ -34,11 +35,6 @@ include = ["yices_solver*"]
 [tool.setuptools.package-data]
 yices_solver = [
   "lib/*",
-]
-
-[tool.setuptools.data-files]
-"bin" = [
-  "yices_solver/bin/*",
 ]
 
 [tool.setuptools_scm]
