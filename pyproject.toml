@@ -28,7 +28,6 @@ classifiers = [
 # or in VCS-tracked files" behaviour
 include-package-data = false
 package-dir = {"" = "."}
-script-files = ["bin/*"]
 
 [tool.setuptools.packages.find]
 where   = ["."]
@@ -37,6 +36,14 @@ include = ["yices_solver*"]
 [tool.setuptools.package-data]
 yices_solver = [
   "lib/*",
+]
+
+[tool.setuptools.data-files]
+scripts = [
+  "yices_solver/bin/yices*",
+  "yices_solver/bin/yices-smt*",
+  "yices_solver/bin/yices-smt2*",
+  "yices_solver/bin/yices-sat*",
 ]
 
 [tool.setuptools_scm]

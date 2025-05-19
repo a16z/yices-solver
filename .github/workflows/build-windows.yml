@@ -48,8 +48,8 @@ jobs:
         curl -sSL -o yices.zip ${URL} &&
         7z x yices.zip -o/tmp
 
-    # stage artefacts into the Python package tree
-    - name: Stage artefacts
+    # stage artifacts into the Python package tree
+    - name: Stage artifacts
       shell: bash
       run: |
         set -euo pipefail
@@ -58,7 +58,9 @@ jobs:
 
         # don't copy from lib/, it only contains libyices.a and libyices.dll.a
         # note: libyices.dll is in bin/
-        cp /tmp/yices-${YICES_VERSION}/bin/* yices_solver/bin/
+        mv /tmp/yices-${YICES_VERSION}/bin/libyices.dll yices_solver/lib/
+        mv /tmp/yices-${YICES_VERSION}/bin/* yices_solver/bin/
+
 
     # build the wheel
     - name: Build wheel
