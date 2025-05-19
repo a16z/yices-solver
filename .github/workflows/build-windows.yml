@@ -99,6 +99,8 @@ jobs:
 
       - name: Install wheel and test
         shell: bash
+        env:
+          PYTHONUTF8: 1
         run: |
           set -euo pipefail
 
