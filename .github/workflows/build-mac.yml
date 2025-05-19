@@ -63,7 +63,6 @@ jobs:
         cp /tmp/yices-${YICES_VERSION}/bin/* yices_solver/bin/
         cp /tmp/yices-${YICES_VERSION}/lib/* yices_solver/lib/
 
-
     # build the wheel
     - name: Build wheel
       shell: bash
@@ -102,13 +101,13 @@ jobs:
         with:
           python-version: ${{ matrix.py }}
 
-      # download wheels from build job artefacts
+      # download wheels from build job artifacts
       - uses: actions/download-artifact@v4
         with:
           name: wheel-${{ matrix.os }}
           path: ./wheels
 
-      - name: Install wheel and test
+      - name: Install wheel
         shell: bash
         run: |
           set -euo pipefail
@@ -118,21 +117,15 @@ jobs:
 
           pip install --no-index --find-links=./wheels yices-solver
 
-          python - <<'PY'
-          import subprocess
-          from textwrap import indent
 
-          for binary in ['yices', 'yices-smt2', 'yices-smt', 'yices-sat']:
-            print(f"Testing {binary}...")
-            try:
-              out = subprocess.check_output([binary, '--version'], text=True).strip()
-              print(indent(out, '  '))
-              if out.startswith("Yices"):
-                print(f"✔️ {binary} OK")
-              else:
-                print(f"❌ {binary} failed (unexpected --version output)")
-            except Exception as e:
-              print(f"❌ {binary} failed: {e}")
+      - name: Test binaries
+        shell: bash
+        run: |
+          set -euo pipefail
 
-          print("✔️  smoke test passed")
-          PY
+          # test that we can find the binaries in PATH after installing the package
+          yices --version
+          yices-smt --version
+          yices-smt2 --version
+          yices-sat --version
+

@@ -97,7 +97,6 @@ jobs:
         python -m pip install --upgrade auditwheel
         auditwheel repair -w dist/ --plat manylinux_2_28_x86_64 dist/*.whl
 
-    # inspect the wheel contents
     - name: Inspect wheel contents
       shell: bash
       run: |
@@ -137,7 +136,7 @@ jobs:
           name: wheel-${{ runner.os }}
           path: ./wheels
 
-      - name: Install wheel and test
+      - name: Install wheel
         shell: bash
         run: |
           set -euo pipefail
@@ -147,23 +146,14 @@ jobs:
 
           pip install --no-index --find-links=./wheels yices-solver
 
-          wheel unpack dist/*.whl
+      - name: Test binaries
+        shell: bash
+        run: |
+          set -euo pipefail
 
-          python - <<'PY'
-          import subprocess
-          from textwrap import indent
+          # test that we can find the binaries in PATH after installing the package
+          yices --version
+          yices-smt --version
+          yices-smt2 --version
+          yices-sat --version
 
-          for binary in ['yices', 'yices-smt2', 'yices-smt', 'yices-sat']:
-            print(f"Testing {binary}...")
-            try:
-              out = subprocess.check_output([binary, '--version'], text=True).strip()
-              print(indent(out, '  '))
-              if out.startswith("Yices"):
-                print(f"✔️ {binary} OK")
-              else:
-                print(f"❌ {binary} failed (unexpected --version output)")
-            except Exception as e:
-              print(f"❌ {binary} failed: {e}")
-
-          print("✔️  smoke test passed")
-          PY

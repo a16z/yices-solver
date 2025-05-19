@@ -112,6 +112,12 @@ jobs:
           # list venv/Scripts/
           ls -la venv/Scripts/
 
+
+      - name: Test binaries
+        shell: bash
+        run: |
+          set -euo pipefail
+
           # test that we can find the binaries in PATH after installing the package
           yices --version
           yices-smt --version
