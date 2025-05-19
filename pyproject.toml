@@ -24,9 +24,11 @@ classifiers = [
 ]
 
 [tool.setuptools]
-include-package-data = false  # we want data-files instead
+# turn off the automatic "sweep up everything that's in MANIFEST.in
+# or in VCS-tracked files" behaviour
+include-package-data = false
 package-dir = {"" = "."}
-script-files = ["yices_solver/bin/*"]
+script-files = ["bin/*"]
 
 [tool.setuptools.packages.find]
 where   = ["."]
