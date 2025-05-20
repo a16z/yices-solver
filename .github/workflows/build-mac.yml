@@ -146,6 +146,9 @@ jobs:
         run: |
           set -euo pipefail
 
+          # activate the venv
+          source venv/bin/activate
+
           # test that we can find the binaries in PATH after installing the package
           yices --version
           yices-smt --version
