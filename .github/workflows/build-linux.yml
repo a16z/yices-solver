@@ -100,9 +100,9 @@ jobs:
     - name: Build wheel
       shell: bash
       env:
-        SETUPTOOLS_SCM_PRETEND_VERSION: ${YICES_VERSION}
+        SETUPTOOLS_SCM_PRETEND_VERSION: ${{ env.YICES_VERSION }}
       run: |
-        echo "Attempting to build wheel for yices-solver version: ${SETUPTOOLS_SCM_PRETEND_VERSION}"
+        echo "Building wheel for yices-solver version ${SETUPTOOLS_SCM_PRETEND_VERSION}"
         python -m build --wheel \
           --config-setting=--plat-name=manylinux_2_28_x86_64 -C--no-universal
 
