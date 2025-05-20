@@ -208,11 +208,16 @@ jobs:
         shell: bash
         env:
           YICES_VERSION: ${{ github.event.inputs.yices_version || (github.ref_name != 'main' && github.ref_name) || '2.6.4' }}
-
         run: |
           set -euo pipefail
 
-          python -m venv venv
+          # Use Python from /opt/python matching the matrix version
+          PYVER="${{ matrix.py }}"
+          MAJOR="${PYVER%%.*}"
+          MINOR="${PYVER#*.}"
+          PYBIN="/opt/python/cp${MAJOR}${MINOR}-cp${MAJOR}${MINOR}/bin"
+
+          $PYBIN/python -m venv venv
           source venv/bin/activate
 
           pip install \
