@@ -78,6 +78,9 @@ jobs:
     - name: Build wheel
       shell: bash
       run: |
+        echo "Wheel(s) found:"
+        ls -la dist/*.whl
+
         python -m build --wheel
 
     # repair / tag the wheel skipped for windows

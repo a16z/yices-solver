@@ -108,6 +108,9 @@ jobs:
       run: |
         set -euo pipefail
 
+        echo "Wheel(s) found:"
+        ls -la dist/*.whl
+
         # Unpack the wheel
         python -m wheel unpack dist/*.whl
 

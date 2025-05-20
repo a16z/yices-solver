@@ -83,6 +83,9 @@ jobs:
       run: |
         set -euo pipefail
 
+        echo "Wheel(s) found:"
+        ls -la dist/*.whl
+
         python -m build --wheel
 
         # try to see if the platform tag can be figured out automatically
