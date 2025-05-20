@@ -157,7 +157,14 @@ jobs:
     #     name: wheel-${{ runner.os }}
     #     path: dist/*.whl
 
+  test-publish:
+    # pypa/gh-action-pypi-publish@release/v1 is docker-based, so needs to run on a recent linux
+    runs-on: ubuntu-latest
+    needs: build-wheel
+    permissions:
+      id-token: write
 
+    steps:
     - name: Publish package distributions to TestPyPI
       uses: pypa/gh-action-pypi-publish@release/v1
       with:
