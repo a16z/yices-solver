@@ -28,6 +28,23 @@ jobs:
       with:
         python-version: 3.12
 
+    - name: Install dependencies
+      run: |
+        set -euo pipefail
+
+        python -m pip install --upgrade pip build wheel auditwheel setuptools
+
+    - name: Print tool versions
+      shell: bash
+      run: |
+        set -euo pipefail
+
+        echo "setuptools version:"
+        python -m setuptools --version
+
+        echo "pip list:"
+        pip list
+
     # download yices release
     - name: Download Yices release
       shell: bash
@@ -66,7 +83,6 @@ jobs:
     - name: Build wheel
       shell: bash
       run: |
-        python -m pip install --upgrade build setuptools wheel
         python -m build --wheel
 
     # repair / tag the wheel skipped for windows

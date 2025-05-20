@@ -28,6 +28,23 @@ jobs:
       with:
         python-version: 3.12
 
+    - name: Install dependencies
+      run: |
+        set -euo pipefail
+
+        python -m pip install --upgrade pip build wheel auditwheel delocate setuptools
+
+    - name: Print tool versions
+      shell: bash
+      run: |
+        set -euo pipefail
+
+        echo "setuptools version:"
+        python -m setuptools --version
+
+        echo "pip list:"
+        pip list
+
     # download yices release
     - name: Download Yices release
       shell: bash
@@ -67,7 +84,8 @@ jobs:
     - name: Build wheel
       shell: bash
       run: |
-        python -m pip install --upgrade build
+        set -euo pipefail
+
         python -m build --wheel
 
         # try to see if the platform tag can be figured out automatically
@@ -78,7 +96,6 @@ jobs:
     - name: Delocate wheel
       shell: bash
       run: |
-        python -m pip install --upgrade delocate
         delocate-wheel --require-target-macos-version 11.0 -v -w dist/ dist/*.whl
 
     # upload the finished wheel
