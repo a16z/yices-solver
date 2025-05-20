@@ -35,10 +35,6 @@ jobs:
     - name: Print tool versions
       shell: bash
       run: |
-        echo "setuptools version:"
-        python -m setuptools --version
-
-        echo "pip list:"
         pip list
 
     # download yices release
