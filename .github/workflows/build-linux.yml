@@ -91,23 +91,25 @@ jobs:
           --config-setting=--plat-name=manylinux_2_28_x86_64 -C--no-universal
 
     # repair / tag the wheel for manylinux_2_28
-    - name: Auditwheel repair
-      shell: bash
-      run: |
-        python -m pip install --upgrade auditwheel
-        auditwheel repair -w dist/ --plat manylinux_2_28_x86_64 dist/*.whl
+    # - name: Auditwheel repair
+    #   shell: bash
+    #   run: |
+    #     python -m pip install --upgrade auditwheel
+    #     auditwheel repair -w dist/ --plat manylinux_2_28_x86_64 dist/*.whl
 
     - name: Inspect wheel contents
       shell: bash
       run: |
-        # Install wheel package and tree
-        python -m pip install wheel
-        yum install -y tree
+        set -euo pipefail
+
+        # Install wheel package
+        python -m pip install --upgrade wheel
 
         # Unpack the wheel
-        wheel unpack dist/*.whl
+        python -m wheel unpack dist/*.whl
 
         # Show the contents using tree
+        yum install -y tree
         echo "Wheel contents:"
         tree yices_solver-*
 
