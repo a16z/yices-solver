@@ -96,13 +96,13 @@ jobs:
         # copy only the shared object, skip static libs (libyices.a)
         cp ${DIST_DIR}/lib/libyices.so.* yices_solver/lib/
 
-    # repair / tag the wheel for manylinux_2_28
-    - name: Inspect required glibc / compatible manylinux version
-      shell: bash
-      run: |
-        # auditwheel repair -w dist/ --plat manylinux_2_28_x86_64 dist/*.whl
+    # # repair / tag the wheel for manylinux_2_28
+    # - name: Inspect required glibc / compatible manylinux version
+    #   shell: bash
+    #   run: |
+    #     # auditwheel repair -w dist/ --plat manylinux_2_28_x86_64 dist/*.whl
 
-        auditwheel show yices_solver/lib/libyices.so.*
+    #     auditwheel show yices_solver/lib/libyices.so.*
 
     # build the wheel
     - name: Build wheel
