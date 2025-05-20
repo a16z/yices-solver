@@ -172,7 +172,7 @@ jobs:
 
   smoke-test:
     name: test ${{ matrix.manylinux_image }} / py${{ matrix.py }}
-    needs: build-wheel
+    needs: test-publish
     runs-on: ubuntu-latest
     container:
       image: ${{ matrix.manylinux_image }}
