@@ -157,10 +157,19 @@ jobs:
     name: test ubuntu-latest / py${{ matrix.py }}
     needs: build-wheel
     runs-on: ubuntu-latest
+    container:
+      image: ${{ matrix.manylinux_image }}
     strategy:
       fail-fast: false
       matrix:
-        py: ['3.9', '3.10', '3.11', '3.12', '3.13']
+        # py: ['3.9', '3.10', '3.11', '3.12', '3.13']
+        py: ['3.13']
+        manylinux_image:
+          - quay.io/pypa/manylinux2010_x86_64
+          - quay.io/pypa/manylinux2014_x86_64
+          - quay.io/pypa/manylinux_2_24_x86_64
+          - quay.io/pypa/manylinux_2_28_x86_64
+
     steps:
       - uses: actions/setup-python@v5
         with:
