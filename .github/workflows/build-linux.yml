@@ -10,9 +10,9 @@ on:
     tags: [ "*.*.*" ]  # e.g. "2.6.5"
     branches:
       - main
-    paths-ignore:
-      - 'README.md'
-      - '**/README.md'
+    paths:
+      - 'pyproject.toml'
+      - '.github/workflows/build-linux.yml'
 
 jobs:
   build-wheel:
@@ -102,7 +102,7 @@ jobs:
       run: |
         # auditwheel repair -w dist/ --plat manylinux_2_28_x86_64 dist/*.whl
 
-        auditwheel show yices_solver/lib/libyices.so
+        auditwheel show yices_solver/lib/libyices.so.*
 
     # build the wheel
     - name: Build wheel
