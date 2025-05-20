@@ -10,9 +10,9 @@ on:
     tags: [ "*.*.*" ]  # e.g. "2.6.5"
     branches:
       - main
-      paths:
-        - 'pyproject.toml'
-        - '.github/workflows/build-mac.yml'
+    paths:
+      - 'pyproject.toml'
+      - '.github/workflows/build-mac.yml'
 
 jobs:
   build-wheel:
