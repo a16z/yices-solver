@@ -169,8 +169,7 @@ jobs:
     - uses: actions/download-artifact@v4
       with:
         name: wheel-linux
-        path: dist/*.whl
-
+        path: dist/
 
     - name: Publish package distributions to TestPyPI
       uses: pypa/gh-action-pypi-publish@release/v1
