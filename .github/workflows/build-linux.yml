@@ -115,7 +115,7 @@ jobs:
         # https://stackoverflow.com/questions/73962721/how-to-create-platform-specific-python-wheel-with-build-tool
         python -m build --wheel \
           --config-setting="--build-option=--plat-name" \
-          --config-setting="--build-option=manylinux_2_28_x86_64" \
+          --config-setting="--build-option=manylinux_2_28_x86_64"
           # --config-setting="--build-option=--no-universal"
 
     - name: Verify wheel version
@@ -152,10 +152,16 @@ jobs:
         tree yices_solver-*
 
     # upload the finished wheel
-    - uses: actions/upload-artifact@v4
+    # - uses: actions/upload-artifact@v4
+    #   with:
+    #     name: wheel-${{ runner.os }}
+    #     path: dist/*.whl
+
+
+    - name: Publish package distributions to TestPyPI
+      uses: pypa/gh-action-pypi-publish@release/v1
       with:
-        name: wheel-${{ runner.os }}
-        path: dist/*.whl
+        repository-url: https://test.pypi.org/legacy/
 
   smoke-test:
     name: test ${{ matrix.manylinux_image }} / py${{ matrix.py }}
@@ -174,25 +180,32 @@ jobs:
           - quay.io/pypa/manylinux_2_28_x86_64
 
     steps:
-      - uses: actions/setup-python@v5
-        with:
-          python-version: ${{ matrix.py }}
+      # these github actions are not supported on manylinux images (glibc too old to run node)
+      # - uses: actions/setup-python@v5
+      #   with:
+      #     python-version: ${{ matrix.py }}
 
-      # download wheels from build job artefacts
-      - uses: actions/download-artifact@v4
-        with:
-          name: wheel-${{ runner.os }}
-          path: ./wheels
+      # # download wheels from build job artefacts
+      # - uses: actions/download-artifact@v4
+      #   with:
+      #     name: wheel-${{ runner.os }}
+      #     path: ./wheels
 
       - name: Install wheel
         shell: bash
+        env:
+          YICES_VERSION: ${{ github.event.inputs.yices_version || (github.ref_name != 'main' && github.ref_name) || '2.6.4' }}
+
         run: |
           set -euo pipefail
 
           python -m venv venv
           source venv/bin/activate
 
-          pip install --no-index --find-links=./wheels yices-solver
+          pip install \
+          --no-index \
+          --index-url https://test.pypi.org/simple/ \
+          "yices-solver==${YICES_VERSION}"
 
       - name: Inspect venv
         shell: bash
