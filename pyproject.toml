@@ -39,12 +39,8 @@ yices_solver = [
 ]
 
 [tool.setuptools.data-files]
-scripts = [
-  "yices_solver/bin/yices*",
-  "yices_solver/bin/yices-smt*",
-  "yices_solver/bin/yices-smt2*",
-  "yices_solver/bin/yices-sat*",
-]
+"bin"     = ["yices_solver/bin/yices*"]     # POSIX layout
+"Scripts" = ["yices_solver/bin/yices*"]     # Windows layout
 
 [tool.setuptools_scm]
 # Tags are plain semantic-version strings like 2.6.5, 2.6.6-rc1, etc.
