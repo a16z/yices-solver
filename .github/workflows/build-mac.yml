@@ -80,17 +80,32 @@ jobs:
     # build the wheel
     - name: Build wheel
       shell: bash
+      env:
+        SETUPTOOLS_SCM_PRETEND_VERSION: ${YICES_VERSION}
       run: |
         set -euo pipefail
-
-        echo "Wheel(s) found:"
-        ls -la dist/*.whl
-
+        echo "Attempting to build wheel for yices-solver version: ${SETUPTOOLS_SCM_PRETEND_VERSION}"
         python -m build --wheel
 
-        # try to see if the platform tag can be figured out automatically
-        # python -m build --wheel \
-        #  --config-setting=--plat-name=macosx_10_15_x86_64 -C--no-universal
+    - name: Verify wheel version
+      shell: bash
+      run: |
+        set -euo pipefail
+        echo "Verifying wheel file for yices-solver version ${YICES_VERSION}..."
+        # Use a glob to find the wheel.
+        WHEEL_FILES=(dist/yices_solver-${YICES_VERSION}-*.whl)
+        if [ ${#WHEEL_FILES[@]} -eq 0 ] || [ ! -f "${WHEEL_FILES[0]}" ]; then
+          echo "ERROR: Wheel for yices-solver version ${YICES_VERSION} not found in dist/ folder!"
+          echo "Contents of dist/:"
+          ls -la dist/
+          exit 1
+        elif [ ${#WHEEL_FILES[@]} -gt 1 ]; then
+          echo "WARNING: Multiple wheels found for yices-solver version ${YICES_VERSION}. Verifying the first one."
+          echo "Found files:"
+          printf "%s\n" "${WHEEL_FILES[@]}"
+        fi
+        echo "Successfully found wheel for yices-solver version ${YICES_VERSION}:"
+        ls -la "${WHEEL_FILES[0]}"
 
     - name: Inspect wheel contents
       shell: bash
