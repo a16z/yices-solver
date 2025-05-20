@@ -151,7 +151,7 @@ jobs:
     - uses: actions/upload-artifact@v4
       with:
         name: wheel-${{ runner.os }}
-        path: dist/*manylinux_2_28_x86_64.whl
+        path: dist/*.whl
 
   smoke-test:
     name: test ubuntu-latest / py${{ matrix.py }}
