@@ -111,8 +111,12 @@ jobs:
         SETUPTOOLS_SCM_PRETEND_VERSION: ${{ env.YICES_VERSION }}
       run: |
         echo "Building wheel for yices-solver version ${SETUPTOOLS_SCM_PRETEND_VERSION}"
+
+        # https://stackoverflow.com/questions/73962721/how-to-create-platform-specific-python-wheel-with-build-tool
         python -m build --wheel \
-          --config-setting=--plat-name=manylinux_2_28_x86_64 -C--no-universal
+          --config-setting="--global-option=--plat-name" \
+          --config-setting="--global-option=manylinux_2_28_x86_64" \
+          --config-setting="--global-option=--no-universal"
 
     - name: Verify wheel version
       shell: bash
