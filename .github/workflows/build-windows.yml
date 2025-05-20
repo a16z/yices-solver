@@ -30,15 +30,11 @@ jobs:
 
     - name: Install dependencies
       run: |
-        set -euo pipefail
-
         python -m pip install --upgrade pip build wheel auditwheel setuptools
 
     - name: Print tool versions
       shell: bash
       run: |
-        set -euo pipefail
-
         echo "setuptools version:"
         python -m setuptools --version
 
