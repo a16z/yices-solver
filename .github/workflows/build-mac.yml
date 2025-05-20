@@ -86,6 +86,19 @@ jobs:
         # python -m build --wheel \
         #  --config-setting=--plat-name=macosx_10_15_x86_64 -C--no-universal
 
+    - name: Inspect wheel contents
+      shell: bash
+      run: |
+        set -euo pipefail
+
+        # Unpack the wheel
+        python -m wheel unpack dist/*.whl
+
+        # Show the contents using tree
+        brew install tree
+        echo "Wheel contents:"
+        tree yices_solver-*
+
     # repair / tag the wheel for macos
     - name: Delocate wheel
       shell: bash

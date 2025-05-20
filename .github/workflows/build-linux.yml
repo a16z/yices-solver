@@ -100,12 +100,6 @@ jobs:
         python -m build --wheel \
           --config-setting=--plat-name=manylinux_2_28_x86_64 -C--no-universal
 
-    # repair / tag the wheel for manylinux_2_28
-    - name: Auditwheel repair
-      shell: bash
-      run: |
-        auditwheel repair -w dist/ --plat manylinux_2_28_x86_64 ist/*.whl
-
     - name: Inspect wheel contents
       shell: bash
       run: |
@@ -118,6 +112,12 @@ jobs:
         yum install -y tree
         echo "Wheel contents:"
         tree yices_solver-*
+
+    # repair / tag the wheel for manylinux_2_28
+    - name: Auditwheel repair
+      shell: bash
+      run: |
+        auditwheel repair -w dist/ --plat manylinux_2_28_x86_64 dist/*.whl
 
     # upload the finished wheel
     - uses: actions/upload-artifact@v4
