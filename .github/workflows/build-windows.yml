@@ -10,6 +10,9 @@ on:
     tags: [ "*.*.*" ]  # e.g. "2.6.5"
     branches:
       - main
+    paths-ignore:
+      - 'README.md'
+      - '**/README.md'
 
 jobs:
   build-wheel:
