@@ -63,12 +63,12 @@ jobs:
       run: |
         set -euo pipefail
 
-        mkdir -p yices_solver/bin yices_solver/lib
+        mkdir -p yices_solver/Scripts yices_solver/lib
 
         # don't copy from lib/, it only contains libyices.a and libyices.dll.a
         # note: libyices.dll is in bin/
         mv /tmp/yices-${YICES_VERSION}/bin/libyices.dll yices_solver/lib/
-        mv /tmp/yices-${YICES_VERSION}/bin/* yices_solver/bin/
+        mv /tmp/yices-${YICES_VERSION}/bin/* yices_solver/Scripts/
 
 
     # build the wheel
