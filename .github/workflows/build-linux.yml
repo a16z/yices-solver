@@ -108,7 +108,7 @@ jobs:
     - name: Build wheel
       shell: bash
       env:
-        SETUPTOOLS_SCM_PRETEND_VERSION: ${{ env.YICES_VERSION }}
+        SETUPTOOLS_SCM_PRETEND_VERSION: ${{ env.YICES_VERSION }}.post${{ github.run_number }}
       run: |
         echo "Building wheel for yices-solver version ${SETUPTOOLS_SCM_PRETEND_VERSION}"
 
