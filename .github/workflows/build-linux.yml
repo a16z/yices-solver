@@ -116,7 +116,7 @@ jobs:
         python -m build --wheel \
           --config-setting="--build-option=--plat-name" \
           --config-setting="--build-option=manylinux_2_28_x86_64" \
-          --config-setting="--build-option=--no-universal"
+          # --config-setting="--build-option=--no-universal"
 
     - name: Verify wheel version
       shell: bash
