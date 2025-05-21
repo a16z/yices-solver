@@ -14,14 +14,16 @@ on:
       - 'pyproject.toml'
       - '.github/workflows/build-linux.yml'
 
+env:
+  YICES_VERSION: ${{ github.event.inputs.yices_version || (github.ref_name != 'main' && github.ref_name) || '2.6.4' }}
+  WHEEL_VERSION: ${{ github.event.inputs.yices_version || (github.ref_name != 'main' && github.ref_name) || '2.6.4' }}.post${{ github.run_number }}
+
 jobs:
   build-wheel:
     runs-on: ubuntu-latest            # host runner
     container:                        # inside manylinux_2_28 tool-chain
       image: quay.io/pypa/manylinux_2_28_x86_64
     env:
-      YICES_VERSION: ${{ github.event.inputs.yices_version || (github.ref_name != 'main' && github.ref_name) || '2.6.4' }}
-      WHEEL_VERSION: ${{ github.event.inputs.yices_version || (github.ref_name != 'main' && github.ref_name) || '2.6.4' }}.post${{ github.run_number }}
       BUILD_DIR: /tmp/yices-build
 
     steps:
@@ -207,8 +209,6 @@ jobs:
 
       - name: Install wheel
         shell: bash
-        env:
-          YICES_VERSION: ${{ github.event.inputs.yices_version || (github.ref_name != 'main' && github.ref_name) || '2.6.4' }}
         run: |
           set -euo pipefail
 
@@ -224,7 +224,7 @@ jobs:
           pip install \
           --no-index \
           --index-url https://test.pypi.org/simple/ \
-          "yices-solver==${YICES_VERSION}"
+          "yices-solver==${WHEEL_VERSION}"
 
       - name: Inspect venv
         shell: bash
