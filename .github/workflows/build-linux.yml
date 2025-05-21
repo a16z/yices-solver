@@ -197,16 +197,10 @@ jobs:
           - quay.io/pypa/manylinux_2_28_x86_64
 
     steps:
-      # these github actions are not supported on manylinux images (glibc too old to run node)
-      # - uses: actions/setup-python@v5
-      #   with:
-      #     python-version: ${{ matrix.py }}
-
-      # # download wheels from build job artefacts
-      # - uses: actions/download-artifact@v4
-      #   with:
-      #     name: wheel-${{ runner.os }}
-      #     path: ./wheels
+      - name: Wait for PyPI index to be updated
+        run: |
+          set -euo pipefail
+          sleep 600
 
       - name: Install wheel
         shell: bash
