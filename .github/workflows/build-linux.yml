@@ -199,7 +199,6 @@ jobs:
     steps:
       - name: Wait for PyPI index to be updated
         run: |
-          set -euo pipefail
           sleep 600
 
       - name: Install wheel
