@@ -157,10 +157,8 @@ jobs:
         # 3.11 and up are not supported on some manylinux images
         py: ['3.8', '3.9', '3.10']
         manylinux_image:
-          - quay.io/pypa/manylinux2010_x86_64
-          - quay.io/pypa/manylinux2014_x86_64
-          - quay.io/pypa/manylinux_2_24_x86_64
           - quay.io/pypa/manylinux_2_28_x86_64
+          - quay.io/pypa/manylinux_2_34_x86_64
 
     steps:
       - name: Wait for PyPI index to be updated
@@ -182,8 +180,8 @@ jobs:
           source venv/bin/activate
 
           pip install -vv \
-          --index-url https://test.pypi.org/simple/ \
-          "yices-solver==${WHEEL_VERSION}"
+            --index-url https://test.pypi.org/simple/ \
+            "yices-solver==${WHEEL_VERSION}"
 
       - name: Inspect venv
         shell: bash
