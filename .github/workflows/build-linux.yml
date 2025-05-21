@@ -21,6 +21,7 @@ jobs:
       image: quay.io/pypa/manylinux_2_28_x86_64
     env:
       YICES_VERSION: ${{ github.event.inputs.yices_version || (github.ref_name != 'main' && github.ref_name) || '2.6.4' }}
+      WHEEL_VERSION: ${{ github.event.inputs.yices_version || (github.ref_name != 'main' && github.ref_name) || '2.6.4' }}.post${{ github.run_number }}
       BUILD_DIR: /tmp/yices-build
 
     steps:
@@ -108,9 +109,9 @@ jobs:
     - name: Build wheel
       shell: bash
       env:
-        SETUPTOOLS_SCM_PRETEND_VERSION: ${{ env.YICES_VERSION }}.post${{ github.run_number }}
+        SETUPTOOLS_SCM_PRETEND_VERSION: ${{ env.WHEEL_VERSION }}
       run: |
-        echo "Building wheel for yices-solver version ${SETUPTOOLS_SCM_PRETEND_VERSION}"
+        echo "Building wheel for yices-solver version ${WHEEL_VERSION}"
 
         # https://stackoverflow.com/questions/73962721/how-to-create-platform-specific-python-wheel-with-build-tool
         python -m build --wheel \
@@ -122,20 +123,20 @@ jobs:
       shell: bash
       run: |
         set -euo pipefail
-        echo "Verifying wheel file for yices-solver version ${YICES_VERSION}..."
+        echo "Verifying wheel file for yices-solver version ${WHEEL_VERSION}..."
         # Use a glob to find the wheel.
-        WHEEL_FILES=(dist/yices_solver-${YICES_VERSION}-*.whl)
+        WHEEL_FILES=(dist/yices_solver-${WHEEL_VERSION}-*.whl)
         if [ ${#WHEEL_FILES[@]} -eq 0 ] || [ ! -f "${WHEEL_FILES[0]}" ]; then
-          echo "ERROR: Wheel for yices-solver version ${YICES_VERSION} not found in dist/ folder!"
+          echo "ERROR: Wheel for yices-solver version ${WHEEL_VERSION} not found in dist/ folder!"
           echo "Contents of dist/:"
           ls -la dist/
           exit 1
         elif [ ${#WHEEL_FILES[@]} -gt 1 ]; then
-          echo "WARNING: Multiple wheels found for yices-solver version ${YICES_VERSION}. Verifying the first one."
+          echo "WARNING: Multiple wheels found for yices-solver version ${WHEEL_VERSION}. Verifying the first one."
           echo "Found files:"
           printf "%s\n" "${WHEEL_FILES[@]}"
         fi
-        echo "Successfully found wheel for yices-solver version ${YICES_VERSION}:"
+        echo "Successfully found wheel for yices-solver version ${WHEEL_VERSION}:"
         ls -la "${WHEEL_FILES[0]}"
 
     - name: Inspect wheel contents
