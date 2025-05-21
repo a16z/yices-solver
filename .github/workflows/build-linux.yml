@@ -188,7 +188,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        py: ['3.9', '3.10', '3.11', '3.12', '3.13']
+        # 3.11 and up are not supported on some manylinux images
+        py: ['3.8', '3.9', '3.10']
         manylinux_image:
           - quay.io/pypa/manylinux2010_x86_64
           - quay.io/pypa/manylinux2014_x86_64
