@@ -116,7 +116,7 @@ jobs:
         python -m wheel unpack dist/*.whl
 
         # Show the contents using tree
-        apt-get install -y tree
+        sudo apt-get install -y tree
         echo "Wheel contents:"
         tree yices_solver-*
 
