@@ -23,16 +23,13 @@ jobs:
     runs-on: ubuntu-latest            # host runner
     container:                        # inside manylinux_2_28 tool-chain
       image: quay.io/pypa/manylinux_2_28_x86_64
-    env:
-      BUILD_DIR: /tmp/yices-build
 
     steps:
     - uses: actions/checkout@v4
 
-    # add a modern Python (manylinux ships 3.11+ in /opt/python)
-    - name: Use CPython 3.11 from manylinux toolchain
-      run: |
-        echo "/opt/python/cp311-cp311/bin" >> $GITHUB_PATH
+    - uses: actions/setup-python@v5
+      with:
+        python-version: 3.12
 
     - name: Install dependencies
       run: |
@@ -45,59 +42,30 @@ jobs:
       run: |
         pip list
 
-    # build static+PIC GMP, install to /usr/local
-    - name: Build GMP
-      shell: bash
-      run: |
-        set -euo pipefail
-        GMP_VERSION=6.3.0
-        curl -sSL "https://ftp.gnu.org/gnu/gmp/gmp-${GMP_VERSION}.tar.xz" | tar -xJ
-        pushd "gmp-${GMP_VERSION}"
-          ./configure --disable-shared --enable-static --with-pic --prefix=/usr/local
-          make -j"$(nproc)"
-          make install
-        popd
-
-    # build Yices from the requested tag
-    - name: Build Yices
+    - name: Download Yices release
       shell: bash
       run: |
         set -euo pipefail
 
-        # install build dependencies
-        dnf -y install gperf
+        case "${YICES_VERSION}" in
+          2.6.5) URL=https://github.com/SRI-CSL/yices2/releases/download/Yices-2.6.5/yices-2.6.5-x86_64-pc-linux-gnu-static-gmp.tar.gz
+          2.6.4) URL=https://github.com/SRI-CSL/yices2/releases/download/Yices-2.6.4/yices-2.6.4-x86_64-pc-linux-gnu.tar.gz
+          *) echo "Unsupported Yices version: ${YICES_VERSION}" >&2 ; exit 1 ;;
+        esac
 
-        git clone --depth 1 --branch "Yices-${YICES_VERSION}" \
-          https://github.com/SRI-CSL/yices2 /tmp/yices
+        echo "Downloading Yices from ${URL}" &&
+        curl -sSL -o /tmp/yices.tgz ${URL} &&
+        tar -C /tmp -xzf /tmp/yices.tgz
 
-        pushd /tmp/yices
-          autoconf
-          ./configure \
-            --with-pic-gmp=/usr/local/lib/libgmp.a \
-            --with-pic-gmp-include-dir=/usr/local/include
-          make show-config MODE=release
-          make -j"$(nproc)"
-          mv build ${BUILD_DIR}
-        popd
-
-    # stage artefacts into the Python package tree
-    - name: Stage artefacts
+    - name: Stage artifacts
       shell: bash
       run: |
         set -euo pipefail
-
-        DIST_DIR=${BUILD_DIR}/x86_64-pc-linux-gnu-release/dist
 
         mkdir -p yices_solver/bin yices_solver/lib
 
-        # list the binaries
-        ls -la ${DIST_DIR}/bin/*
-
-        # copy the binaries
-        cp ${DIST_DIR}/bin/* yices_solver/bin/
-
-        # copy only the shared object, skip static libs (libyices.a)
-        cp ${DIST_DIR}/lib/libyices.so.* yices_solver/lib/
+        cp /tmp/yices-${YICES_VERSION}/bin/* yices_solver/bin/
+        cp /tmp/yices-${YICES_VERSION}/lib/* yices_solver/lib/
 
     # # repair / tag the wheel for manylinux_2_28
     # - name: Inspect required glibc / compatible manylinux version
