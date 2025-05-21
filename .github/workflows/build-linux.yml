@@ -199,8 +199,21 @@ jobs:
           source venv/bin/activate
 
           # test that we can find the binaries in PATH after installing the package
+          echo "yices --version"
           yices --version
+
+          echo "\nyices-smt --version"
           yices-smt --version
+
+          echo "\nyices-smt2 --version"
           yices-smt2 --version
+
+          echo "\nyices-sat --version"
           yices-sat --version
+
+          echo "\nyices-smt2 --help"
+          yices-smt2 --help
+
+          echo "\nyices-smt2 --mcsat-help"
+          yices-smt2 --mcsat-help
 
