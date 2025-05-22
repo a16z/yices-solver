@@ -54,8 +54,7 @@ runs:
 
         echo "Wheel contents:"
         if [[ "${{ runner.os }}" == "Windows" ]]; then
-          # Windows has a built-in tree command with different syntax
-          tree /f yices_solver-*
+          find "yices_solver-*" -type f
         else
           tree yices_solver-*
         fi
