@@ -1,0 +1,61 @@
+name: 'Verify Wheel'
+description: 'Verifies a Python wheel file and inspects its contents'
+inputs:
+  wheel-version:
+    description: 'The expected version of the wheel'
+    required: true
+  wheel-dir:
+    description: 'Directory containing the wheel files'
+    required: false
+    default: 'dist'
+
+runs:
+  using: "composite"
+  steps:
+    - name: Verify wheel version
+      shell: bash
+      run: |
+        set -euo pipefail
+        echo "Verifying wheel file for yices-solver version ${{ inputs.wheel-version }}..."
+        # Use a glob to find the wheel.
+        WHEEL_FILES=(${{ inputs.wheel-dir }}/yices_solver-${{ inputs.wheel-version }}-*.whl)
+        if [ ${#WHEEL_FILES[@]} -eq 0 ] || [ ! -f "${WHEEL_FILES[0]}" ]; then
+          echo "ERROR: Wheel for yices-solver version ${{ inputs.wheel-version }} not found in ${{ inputs.wheel-dir }}/ folder!"
+          echo "Contents of ${{ inputs.wheel-dir }}/:"
+          ls -la ${{ inputs.wheel-dir }}/
+          exit 1
+        elif [ ${#WHEEL_FILES[@]} -gt 1 ]; then
+          echo "WARNING: Multiple wheels found for yices-solver version ${{ inputs.wheel-version }}. Verifying the first one."
+          echo "Found files:"
+          printf "%s\n" "${WHEEL_FILES[@]}"
+        fi
+        echo "Successfully found wheel for yices-solver version ${{ inputs.wheel-version }}:"
+        ls -la "${WHEEL_FILES[0]}"
+
+    - name: Install tree
+      shell: bash
+      if: runner.os == 'Linux'
+      run: |
+        sudo apt-get install -y tree
+
+    - name: Install tree
+      shell: bash
+      if: runner.os == 'macOS'
+      run: |
+        brew install tree
+
+    - name: Inspect wheel contents
+      shell: bash
+      run: |
+        set -euo pipefail
+
+        # Unpack the wheel
+        python -m wheel unpack ${{ inputs.wheel-dir }}/*.whl
+
+        echo "Wheel contents:"
+        if [[ "${{ runner.os }}" == "Windows" ]]; then
+          # Windows has a built-in tree command with different syntax
+          tree /f yices_solver-*
+        else
+          tree yices_solver-*
+        fi

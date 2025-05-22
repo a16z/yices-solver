@@ -23,6 +23,7 @@ jobs:
         os: [windows-latest]
     env:
       YICES_VERSION: ${{ github.event.inputs.yices_version || (github.ref_name != 'main' && github.ref_name) || '2.6.4' }}
+      WHEEL_VERSION: ${{ github.event.inputs.yices_version || (github.ref_name != 'main' && github.ref_name) || '2.6.4' }}.post${{ github.run_number }}
 
     steps:
     - uses: actions/checkout@v4
@@ -64,43 +65,16 @@ jobs:
     - name: Build wheel
       shell: bash
       env:
-        SETUPTOOLS_SCM_PRETEND_VERSION: ${{ env.YICES_VERSION }}
+        SETUPTOOLS_SCM_PRETEND_VERSION: ${{ env.WHEEL_VERSION }}
       run: |
-        echo "Building wheel for yices-solver version ${SETUPTOOLS_SCM_PRETEND_VERSION}"
+        echo "Building wheel for yices-solver version ${WHEEL_VERSION}"
         python -m build --wheel
 
     - name: Verify wheel version
-      shell: bash
-      run: |
-        set -euo pipefail
-        echo "Verifying wheel file for yices-solver version ${YICES_VERSION}..."
-        # Use a glob to find the wheel.
-        WHEEL_FILES=(dist/yices_solver-${YICES_VERSION}-*.whl)
-        if [ ${#WHEEL_FILES[@]} -eq 0 ] || [ ! -f "${WHEEL_FILES[0]}" ]; then
-          echo "ERROR: Wheel for yices-solver version ${YICES_VERSION} not found in dist/ folder!"
-          echo "Contents of dist/:"
-          ls -la dist/
-          exit 1
-        elif [ ${#WHEEL_FILES[@]} -gt 1 ]; then
-          echo "WARNING: Multiple wheels found for yices-solver version ${YICES_VERSION}. Verifying the first one."
-          echo "Found files:"
-          printf "%s\n" "${WHEEL_FILES[@]}"
-        fi
-        echo "Successfully found wheel for yices-solver version ${YICES_VERSION}:"
-        ls -la "${WHEEL_FILES[0]}"
-
-    # repair / tag the wheel skipped for windows
-
-    - name: Inspect wheel contents
-      shell: bash
-      run: |
-        set -euo pipefail
-
-        # Unpack the wheel
-        python -m wheel unpack dist/*.whl
-
-        # We don't have tree, so we'll just list the contents
-        find yices_solver-* -print
+      uses: ./.github/actions/verify-wheel
+      with:
+        wheel-version: ${{ env.WHEEL_VERSION }}
+        wheel-dir: dist/
 
     # upload the finished wheel
     - uses: actions/upload-artifact@v4

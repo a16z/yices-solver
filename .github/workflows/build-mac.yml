@@ -69,38 +69,11 @@ jobs:
         echo "Building wheel for yices-solver version ${SETUPTOOLS_SCM_PRETEND_VERSION}"
         python -m build --wheel
 
-    - name: Verify wheel version
-      shell: bash
-      run: |
-        set -euo pipefail
-        echo "Verifying wheel file for yices-solver version ${YICES_VERSION}..."
-        # Use a glob to find the wheel.
-        WHEEL_FILES=(dist/yices_solver-${YICES_VERSION}-*.whl)
-        if [ ${#WHEEL_FILES[@]} -eq 0 ] || [ ! -f "${WHEEL_FILES[0]}" ]; then
-          echo "ERROR: Wheel for yices-solver version ${YICES_VERSION} not found in dist/ folder!"
-          echo "Contents of dist/:"
-          ls -la dist/
-          exit 1
-        elif [ ${#WHEEL_FILES[@]} -gt 1 ]; then
-          echo "WARNING: Multiple wheels found for yices-solver version ${YICES_VERSION}. Verifying the first one."
-          echo "Found files:"
-          printf "%s\n" "${WHEEL_FILES[@]}"
-        fi
-        echo "Successfully found wheel for yices-solver version ${YICES_VERSION}:"
-        ls -la "${WHEEL_FILES[0]}"
-
-    - name: Inspect wheel contents
-      shell: bash
-      run: |
-        set -euo pipefail
-
-        # Unpack the wheel
-        python -m wheel unpack dist/*.whl
-
-        # Show the contents using tree
-        brew install tree
-        echo "Wheel contents:"
-        tree yices_solver-*
+    - name: Verify and inspect wheel
+      uses: ./.github/actions/verify-wheel
+      with:
+        wheel-version: ${{ env.YICES_VERSION }}
+        wheel-dir: dist/
 
     # repair / tag the wheel for macos
     - name: Delocate wheel
