@@ -101,19 +101,17 @@ jobs:
         repository-url: https://test.pypi.org/legacy/
 
   smoke-test:
-    name: test ${{ matrix.manylinux_image }} / py${{ matrix.py }}
+    name: manylinux_${{ matrix.manylinux_version }} / py${{ matrix.py }}
     needs: test-publish
     runs-on: ubuntu-latest
     container:
-      image: ${{ matrix.manylinux_image }}
+      image: quay.io/pypa/manylinux_${{ matrix.manylinux_version }}_x86_64
     strategy:
       fail-fast: false
       matrix:
         # 3.11 and up are not supported on some manylinux images
         py: ['3.8', '3.9', '3.10']
-        manylinux_image:
-          - quay.io/pypa/manylinux_2_28_x86_64
-          - quay.io/pypa/manylinux_2_34_x86_64
+        manylinux_version: ['2_28', '2_34']
 
     steps:
       - name: Wait for PyPI index to be updated
@@ -141,34 +139,9 @@ jobs:
       - name: Inspect venv
         shell: bash
         run: |
-          set -euo pipefail
-
           ls -la venv/bin/
 
       - name: Test binaries
-        shell: bash
-        run: |
-          set -euo pipefail
-
-          # activate the venv
-          source venv/bin/activate
-
-          # test that we can find the binaries in PATH after installing the package
-          echo "yices --version"
-          yices --version
-
-          echo "\nyices-smt --version"
-          yices-smt --version
-
-          echo "\nyices-smt2 --version"
-          yices-smt2 --version
-
-          echo "\nyices-sat --version"
-          yices-sat --version
-
-          echo "\nyices-smt2 --help"
-          yices-smt2 --help
-
-          echo "\nyices-smt2 --mcsat-help"
-          yices-smt2 --mcsat-help
-
+        uses: ./.github/actions/test-binaries
+        with:
+          venv-path: venv

@@ -102,10 +102,8 @@ jobs:
           name: wheel-${{ matrix.os }}
           path: ./wheels
 
-      - name: Install wheel and test
+      - name: Install wheel
         shell: bash
-        env:
-          PYTHONUTF8: 1
         run: |
           set -euo pipefail
 
@@ -117,34 +115,9 @@ jobs:
       - name: Inspect venv
         shell: bash
         run: |
-          set -euo pipefail
-
-          # list venv/Scripts/
           ls -la venv/Scripts/
 
       - name: Test binaries
-        shell: bash
-        run: |
-          set -euo pipefail
-
-          # activate the venv
-          source venv/Scripts/activate
-
-          # test that we can find the binaries in PATH after installing the package
-          echo "yices --version"
-          yices --version
-
-          echo "\nyices-smt --version"
-          yices-smt --version
-
-          echo "\nyices-smt2 --version"
-          yices-smt2 --version
-
-          echo "\nyices-sat --version"
-          yices-sat --version
-
-          echo "\nyices-smt2 --help"
-          yices-smt2 --help
-
-          echo "\nyices-smt2 --mcsat-help"
-          yices-smt2 --mcsat-help
+        uses: ./.github/actions/test-binaries
+        with:
+          venv-path: venv

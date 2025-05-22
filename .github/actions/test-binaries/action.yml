@@ -1,0 +1,42 @@
+name: 'Test Yices Binaries'
+description: 'Tests that installed Yices binaries are available in PATH and working'
+
+inputs:
+  venv-path:
+    description: 'Path to the virtual environment directory'
+    required: false
+    default: 'venv'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Test binaries
+      shell: bash
+      run: |
+        set -euo pipefail
+
+        # activate the venv
+        if [[ "${{ runner.os }}" == "Windows" ]]; then
+          source ${{ inputs.venv-path }}/Scripts/activate
+        else
+          source ${{ inputs.venv-path }}/bin/activate
+        fi
+
+        # test that we can find the binaries in PATH after installing the package
+        echo "yices --version"
+        yices --version
+
+        echo "\nyices-smt --version"
+        yices-smt --version
+
+        echo "\nyices-smt2 --version"
+        yices-smt2 --version
+
+        echo "\nyices-sat --version"
+        yices-sat --version
+
+        echo "\nyices-smt2 --help"
+        yices-smt2 --help
+
+        echo "\nyices-smt2 --mcsat-help"
+        yices-smt2 --mcsat-help
