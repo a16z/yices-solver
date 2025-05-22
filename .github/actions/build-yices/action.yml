@@ -45,7 +45,7 @@ runs:
         echo "Building CUDD..."
 
         # Clone CUDD
-        git clone --branch tags/cudd-3.0.0 --single-branch --depth 1 https://github.com/ivmai/cudd
+        git clone --branch cudd-3.0.0 --single-branch --depth 1 https://github.com/ivmai/cudd
 
         pushd cudd
           autoreconf -i
