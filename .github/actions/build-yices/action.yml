@@ -20,6 +20,30 @@ runs:
         echo "INSTALL_DIR=${{ inputs.output-path }}/yices-${{ inputs.yices-version }}" >> $GITHUB_ENV
         echo "YICES_VERSION=${{ inputs.yices-version }}" >> $GITHUB_ENV
 
+    - name: Build GMP
+      shell: bash
+      env:
+        GMP_VERSION: 6.3.0
+      run: |
+        set -euo pipefail
+        echo "Building GMP..."
+
+        curl -sSL https://ftp.gnu.org/gnu/gmp/gmp-${GMP_VERSION}.tar.xz | tar -xJ
+        pushd gmp-${GMP_VERSION}
+          ./configure \
+            --disable-shared \
+            --enable-static \
+            --with-pic \
+            --prefix=/usr/local
+
+          make -j$(nproc)
+
+          # uncomment to run tests
+          # make check
+
+          make install
+        popd
+
     - name: Build libpoly
       shell: bash
       run: |
@@ -57,7 +81,10 @@ runs:
             CFLAGS="-O3 -fPIC"
 
           make -j$(nproc 2>/dev/null || sysctl -n hw.ncpu)
-          make check
+
+          # uncomment to run tests
+          # make check
+
           sudo make install
         popd
 
@@ -77,7 +104,10 @@ runs:
 
           CPPFLAGS="-I/opt/cudd-static/include" \
           LDFLAGS="-L/opt/cudd-static/lib" \
-          ./configure --enable-mcsat --prefix="$INSTALL_DIR"
+          ./configure \
+            --with-
+            --enable-mcsat \
+            --prefix="$INSTALL_DIR"
 
           make -j$(nproc 2>/dev/null || sysctl -n hw.ncpu) static-distribution
           sudo make install

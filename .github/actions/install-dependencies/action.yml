@@ -8,14 +8,14 @@ runs:
       shell: bash
       run: |
         sudo apt-get update
-        sudo apt-get install -y libgmp-dev gperf cmake autoconf automake libtool
+        sudo apt-get install -y gperf cmake autoconf automake libtool
         sudo apt-get install -y python3-pip python3-venv
 
     - name: Install MacOS Dependencies
       if: runner.os == 'macOS'
       shell: bash
       run: |
-        brew install gmp automake cmake
+        brew install automake cmake
 
     - name: Install Python Dependencies
       shell: bash
