@@ -26,7 +26,6 @@ runs:
         GMP_VERSION: 6.3.0
       run: |
         set -euo pipefail
-        echo "Building GMP..."
 
         curl -sSL https://ftp.gnu.org/gnu/gmp/gmp-${GMP_VERSION}.tar.xz | tar -xJ
         pushd gmp-${GMP_VERSION}
@@ -41,14 +40,13 @@ runs:
           # uncomment to run tests
           # make check
 
-          make install
+          sudo make install
         popd
 
     - name: Build libpoly
       shell: bash
       run: |
         set -euo pipefail
-        echo "Building libpoly..."
 
         # Clone libpoly
         git clone --depth 1 https://github.com/SRI-CSL/libpoly
@@ -66,7 +64,6 @@ runs:
       shell: bash
       run: |
         set -euo pipefail
-        echo "Building CUDD..."
 
         # Clone CUDD
         git clone --branch cudd-3.0.0 --single-branch --depth 1 https://github.com/ivmai/cudd

@@ -15,7 +15,7 @@ runs:
       if: runner.os == 'macOS'
       shell: bash
       run: |
-        brew install automake cmake
+        brew install automake cmake libtool
 
     - name: Install Python Dependencies
       shell: bash
