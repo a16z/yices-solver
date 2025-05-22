@@ -110,7 +110,7 @@ runs:
             --disable-doc \
             --prefix="$INSTALL_DIR"
 
-          make -j$(nproc 2>/dev/null || sysctl -n hw.ncpu) static-distribution
+          make -j$(nproc 2>/dev/null || sysctl -n hw.ncpu) static-bin
           sudo make install
         popd
 
