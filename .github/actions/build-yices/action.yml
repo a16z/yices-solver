@@ -110,8 +110,8 @@ runs:
             --disable-doc \
             --prefix="$INSTALL_DIR"
 
-          make -j$(nproc 2>/dev/null || sysctl -n hw.ncpu) static-bin
-          sudo make install
+          N=$(nproc 2>/dev/null || sysctl -n hw.ncpu)
+          make -j$N static-bin lib
         popd
 
     - name: Verify the build
@@ -120,9 +120,38 @@ runs:
         set -euo pipefail
         echo "Verifying Yices build..."
 
-        # Check that the binaries exist and can run
-        "$INSTALL_DIR/bin/yices" --version
-        "$INSTALL_DIR/bin/yices-smt2" --version
+        TARGET_DIR=$(find yices2/build -mindepth 1 -maxdepth 1 -type d | head -n 1)
 
-        # List installed files
-        find "$INSTALL_DIR" -type f | sort
+        echo "TARGET_DIR: $TARGET_DIR"
+        ls -la "$TARGET_DIR"
+
+        echo "$TARGET_DIR/static_bin:"
+        ls -la "$TARGET_DIR/static_bin"
+
+        echo "$TARGET_DIR/lib:"
+        ls -la "$TARGET_DIR/lib"
+
+        # Check that the binaries exist and can run
+        echo "yices --version"
+        "$TARGET_DIR/static_bin/yices" --version
+
+        echo "yices_smt2 --version"
+        "$TARGET_DIR/static_bin/yices_smt2" --version
+
+
+
+    - name: Move binaries to output directory
+      shell: bash
+      run: |
+        set -euo pipefail
+
+        mkdir -p "$INSTALL_DIR/bin"
+        mkdir -p "$INSTALL_DIR/lib"
+
+        mv "$TARGET_DIR/static_bin/yices" "$INSTALL_DIR/bin"
+        mv "$TARGET_DIR/static_bin/yices_sat" "$INSTALL_DIR/bin/yices-sat"
+        mv "$TARGET_DIR/static_bin/yices_smt" "$INSTALL_DIR/bin/yices-smt"
+        mv "$TARGET_DIR/static_bin/yices_smt2" "$INSTALL_DIR/bin/yices-smt2"
+
+        mv "$TARGET_DIR/lib/*" "$INSTALL_DIR/lib"
+
