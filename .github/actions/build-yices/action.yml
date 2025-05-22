@@ -74,7 +74,7 @@ runs:
           ./configure --enable-silent-rules \
             --enable-static \
             --disable-shared \
-            --prefix=/opt/cudd-static \
+            --prefix=/usr/local \
             CFLAGS="-O3 -fPIC"
 
           make -j$(nproc 2>/dev/null || sysctl -n hw.ncpu)
@@ -99,10 +99,11 @@ runs:
           # Configure and build Yices
           autoconf
 
-          CPPFLAGS="-I/opt/cudd-static/include" \
-          LDFLAGS="-L/opt/cudd-static/lib" \
+          CPPFLAGS="-I/usr/local/include" \
+          LDFLAGS="-L/usr/local/lib" \
           ./configure \
-            --with-
+            --with-pic-gmp=/usr/local/lib/libgmp.a \
+            --with-pic-gmp-include-dir=/usr/local/include \
             --enable-mcsat \
             --prefix="$INSTALL_DIR"
 
