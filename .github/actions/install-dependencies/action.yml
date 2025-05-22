@@ -16,6 +16,7 @@ runs:
       shell: bash
       run: |
         brew install automake cmake libtool
+        brew install --cask basictex  # for latexmk
 
     - name: Install Python Dependencies
       shell: bash

@@ -104,7 +104,10 @@ runs:
           ./configure \
             --with-pic-gmp=/usr/local/lib/libgmp.a \
             --with-pic-gmp-include-dir=/usr/local/include \
+            --with-pic-libpoly=/usr/local/lib/libpicpoly.a \
+            --with-pic-libpoly-include-dir=/usr/local/include \
             --enable-mcsat \
+            --disable-doc \
             --prefix="$INSTALL_DIR"
 
           make -j$(nproc 2>/dev/null || sysctl -n hw.ncpu) static-distribution
