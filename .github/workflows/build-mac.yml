@@ -42,8 +42,8 @@ jobs:
       run: |
         pip list
 
-    # download yices release
-    - uses: ./.github/actions/download-yices
+    - name: Build Yices
+      uses: ./.github/actions/build-yices
       with:
         yices-version: ${{ env.YICES_VERSION }}
         output-path: /tmp

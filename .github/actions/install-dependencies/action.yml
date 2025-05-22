@@ -1,0 +1,24 @@
+name: Install Dependencies
+
+runs:
+  using: composite
+  steps:
+    - name: Install Linux Dependencies
+      if: runner.os == 'Linux'
+      shell: bash
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y libgmp-dev gperf cmake autoconf automake libtool
+        sudo apt-get install -y python3-pip python3-venv
+
+    - name: Install MacOS Dependencies
+      if: runner.os == 'macOS'
+      shell: bash
+      run: |
+        brew install gmp automake cmake
+
+    - name: Install Python Dependencies
+      shell: bash
+      run: |
+        pip install --upgrade pip build wheel setuptools
+

@@ -1,0 +1,97 @@
+name: 'Build Yices from Source'
+description: 'Build Yices SMT solver from source, including its dependencies (libpoly and CUDD)'
+
+inputs:
+  yices-version:
+    description: 'Yices version to build (e.g. 2.6.5)'
+    required: true
+    default: '2.6.5'
+  output-path:
+    description: 'Directory where Yices will be built and installed'
+    required: false
+    default: '/tmp'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Set up environment variables
+      shell: bash
+      run: |
+        echo "INSTALL_DIR=${{ inputs.output-path }}/yices-${{ inputs.yices-version }}" >> $GITHUB_ENV
+        echo "YICES_VERSION=${{ inputs.yices-version }}" >> $GITHUB_ENV
+
+    - name: Build libpoly
+      shell: bash
+      run: |
+        set -euo pipefail
+        echo "Building libpoly..."
+
+        # Clone libpoly
+        git clone --depth 1 https://github.com/SRI-CSL/libpoly
+        pushd libpoly/build
+          cmake .. \
+            -DLIBPOLY_BUILD_STATIC=ON \
+            -DLIBPOLY_BUILD_STATIC_PIC=ON \
+            -DCMAKE_BUILD_TYPE=Release
+
+          make -j$(nproc 2>/dev/null || sysctl -n hw.ncpu)
+          sudo make install
+        popd
+
+    - name: Build CUDD
+      shell: bash
+      run: |
+        set -euo pipefail
+        echo "Building CUDD..."
+
+        # Clone CUDD
+        git clone --branch tags/cudd-3.0.0 --single-branch --depth 1 https://github.com/ivmai/cudd
+
+        pushd cudd
+          autoreconf -i
+
+          ./configure --enable-silent-rules \
+            --enable-static \
+            --disable-shared \
+            --prefix=/opt/cudd-static \
+            CFLAGS="-O3 -fPIC"
+
+          make -j$(nproc 2>/dev/null || sysctl -n hw.ncpu)
+          make check
+          sudo make install
+        popd
+
+    - name: Build Yices
+      shell: bash
+      run: |
+        set -euo pipefail
+        echo "Building Yices ${YICES_VERSION}..."
+
+        # Clone Yices repository
+        git clone --branch "Yices-${YICES_VERSION}" --depth 1 --single-branch \
+          https://github.com/SRI-CSL/yices2
+
+        pushd yices2
+          # Configure and build Yices
+          autoconf
+
+          CPPFLAGS="-I/opt/cudd-static/include" \
+          LDFLAGS="-L/opt/cudd-static/lib" \
+          ./configure --enable-mcsat --prefix="$INSTALL_DIR"
+
+          make -j$(nproc 2>/dev/null || sysctl -n hw.ncpu) static-distribution
+          sudo make install
+        popd
+
+    - name: Verify the build
+      shell: bash
+      run: |
+        set -euo pipefail
+        echo "Verifying Yices build..."
+
+        # Check that the binaries exist and can run
+        "$INSTALL_DIR/bin/yices" --version
+        "$INSTALL_DIR/bin/yices-smt2" --version
+
+        # List installed files
+        find "$INSTALL_DIR" -type f | sort

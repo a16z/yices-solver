@@ -40,7 +40,8 @@ jobs:
       run: |
         pip list
 
-    - uses: ./.github/actions/download-yices
+    - name: Build Yices
+      uses: ./.github/actions/build-yices
       with:
         yices-version: ${{ env.YICES_VERSION }}
         output-path: /tmp
@@ -66,7 +67,7 @@ jobs:
         # https://stackoverflow.com/questions/73962721/how-to-create-platform-specific-python-wheel-with-build-tool
         python -m build --wheel \
           --config-setting="--build-option=--plat-name" \
-          --config-setting="--build-option=manylinux2010_x86_64"
+          --config-setting="--build-option=manylinux_2_28_x86_64"
           # --config-setting="--build-option=--no-universal"
 
     - name: Verify and inspect wheel
