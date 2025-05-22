@@ -56,7 +56,7 @@ runs:
             -DLIBPOLY_BUILD_STATIC_PIC=ON \
             -DCMAKE_BUILD_TYPE=Release
 
-          make -j$(nproc 2>/dev/null || sysctl -n hw.ncpu)
+          make -j$(nproc 2>/dev/null || sysctl -n hw.ncpu) static_pic_poly
           sudo make install
         popd
 
