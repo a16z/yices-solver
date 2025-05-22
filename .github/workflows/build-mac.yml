@@ -32,15 +32,7 @@ jobs:
         python-version: 3.12
 
     - name: Install dependencies
-      run: |
-        set -euo pipefail
-
-        python -m pip install --upgrade pip build wheel auditwheel delocate setuptools
-
-    - name: Print tool versions
-      shell: bash
-      run: |
-        pip list
+      uses: ./.github/actions/install-dependencies
 
     - name: Build Yices
       uses: ./.github/actions/build-yices
@@ -48,8 +40,7 @@ jobs:
         yices-version: ${{ env.YICES_VERSION }}
         output-path: /tmp
 
-    # stage artefacts into the Python package tree
-    - name: Stage artefacts
+    - name: Stage artifacts
       shell: bash
       run: |
         set -euo pipefail
@@ -59,7 +50,6 @@ jobs:
         cp /tmp/yices-${YICES_VERSION}/bin/* yices_solver/bin/
         cp /tmp/yices-${YICES_VERSION}/lib/* yices_solver/lib/
 
-    # build the wheel
     - name: Build wheel
       shell: bash
       env:

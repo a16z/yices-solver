@@ -30,15 +30,7 @@ jobs:
         python-version: 3.12
 
     - name: Install dependencies
-      run: |
-        set -euo pipefail
-
-        python -m pip install --upgrade pip build wheel auditwheel setuptools
-
-    - name: Print tool versions
-      shell: bash
-      run: |
-        pip list
+      uses: ./.github/actions/install-dependencies
 
     - name: Build Yices
       uses: ./.github/actions/build-yices
@@ -56,7 +48,6 @@ jobs:
         cp /tmp/yices-${YICES_VERSION}/bin/* yices_solver/bin/
         cp /tmp/yices-${YICES_VERSION}/lib/* yices_solver/lib/
 
-    # build the wheel
     - name: Build wheel
       shell: bash
       env:
