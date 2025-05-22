@@ -154,4 +154,4 @@ runs:
 
         # move both shared and static libraries to the install directory
         # (mirrors the official Yices releases)
-        mv "$TARGET_DIR/lib/*" "$INSTALL_DIR/lib"
+        mv $TARGET_DIR/lib/* "$INSTALL_DIR/lib"
