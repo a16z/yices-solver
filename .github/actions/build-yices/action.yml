@@ -121,6 +121,7 @@ runs:
         echo "Verifying Yices build..."
 
         TARGET_DIR=$(find yices2/build -mindepth 1 -maxdepth 1 -type d | head -n 1)
+        echo "TARGET_DIR=$TARGET_DIR" >> $GITHUB_ENV
 
         echo "TARGET_DIR: $TARGET_DIR"
         ls -la "$TARGET_DIR"
@@ -139,7 +140,6 @@ runs:
         "$TARGET_DIR/static_bin/yices_smt2" --version
 
 
-
     - name: Move binaries to output directory
       shell: bash
       run: |
@@ -153,5 +153,5 @@ runs:
         mv "$TARGET_DIR/static_bin/yices_smt" "$INSTALL_DIR/bin/yices-smt"
         mv "$TARGET_DIR/static_bin/yices_smt2" "$INSTALL_DIR/bin/yices-smt2"
 
-        mv "$TARGET_DIR/lib/*" "$INSTALL_DIR/lib"
+        mv "$TARGET_DIR/lib/libyices.so*" "$INSTALL_DIR/lib"
 
