@@ -15,6 +15,10 @@ on:
       - '.github/workflows/build-windows.yml'
       - '.github/actions/**'
 
+env:
+  YICES_VERSION: ${{ github.event.inputs.yices_version || (github.ref_name != 'main' && github.ref_name) || '2.6.4' }}
+  WHEEL_VERSION: ${{ github.event.inputs.yices_version || (github.ref_name != 'main' && github.ref_name) || '2.6.4' }}.post${{ github.run_number }}
+
 jobs:
   build-wheel:
     runs-on: ${{ matrix.os }}
@@ -22,9 +26,6 @@ jobs:
       fail-fast: false
       matrix:
         os: [windows-latest]
-    env:
-      YICES_VERSION: ${{ github.event.inputs.yices_version || (github.ref_name != 'main' && github.ref_name) || '2.6.4' }}
-      WHEEL_VERSION: ${{ github.event.inputs.yices_version || (github.ref_name != 'main' && github.ref_name) || '2.6.4' }}.post${{ github.run_number }}
 
     steps:
     - uses: actions/checkout@v4
@@ -35,7 +36,7 @@ jobs:
 
     - name: Install dependencies
       run: |
-        python -m pip install --upgrade pip build wheel auditwheel setuptools
+        python -m pip install --upgrade pip build wheel delvewheel setuptools
 
     - name: Print tool versions
       shell: bash
@@ -66,13 +67,21 @@ jobs:
         SETUPTOOLS_SCM_PRETEND_VERSION: ${{ env.WHEEL_VERSION }}
       run: |
         echo "Building wheel for yices-solver version ${WHEEL_VERSION}"
-        python3 -m build --wheel
+        python3 -m build --wheel \
+          --config-setting="--build-option=--plat-name" \
+          --config-setting="--build-option=win_amd64"
 
-    - name: Verify wheel version
+    - name: Verify and inspect wheel
       uses: ./.github/actions/verify-wheel
       with:
         wheel-version: ${{ env.WHEEL_VERSION }}
         wheel-dir: dist/
+
+    # repair the wheel for Windows
+    - name: Repair wheel with delvewheel
+      shell: bash
+      run: |
+        delvewheel repair -v -w dist/ dist/*.whl
 
     # upload the finished wheel
     - uses: actions/upload-artifact@v4
@@ -80,9 +89,26 @@ jobs:
         name: wheel-${{ matrix.os }}
         path: dist/*.whl
 
+  test-publish:
+    runs-on: windows-latest
+    needs: build-wheel
+    permissions:
+      id-token: write
+
+    steps:
+    - uses: actions/download-artifact@v4
+      with:
+        name: wheel-windows-latest
+        path: dist/
+
+    - name: Publish package distributions to TestPyPI
+      uses: pypa/gh-action-pypi-publish@release/v1
+      with:
+        repository-url: https://test.pypi.org/legacy/
+
   smoke-test:
     name: test ${{ matrix.os }} / py${{ matrix.py }}
-    needs: build-wheel
+    needs: test-publish
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -97,11 +123,9 @@ jobs:
         with:
           python-version: ${{ matrix.py }}
 
-      # download wheels from build job artefacts
-      - uses: actions/download-artifact@v4
-        with:
-          name: wheel-${{ matrix.os }}
-          path: ./wheels
+      - name: Wait for PyPI index to be updated
+        run: |
+          sleep 600
 
       - name: Install wheel
         shell: bash
@@ -111,7 +135,9 @@ jobs:
           python -m venv venv
           source venv/Scripts/activate
 
-          pip install --no-index --find-links=./wheels yices-solver
+          pip install -vv \
+            --index-url https://test.pypi.org/simple/ \
+            "yices-solver==${WHEEL_VERSION}"
 
       - name: Inspect venv
         shell: bash
