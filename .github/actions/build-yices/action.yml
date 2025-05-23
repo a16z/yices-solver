@@ -109,6 +109,7 @@ runs:
           ./configure \
             --disable-shared \
             --enable-static \
+            --enable-cxx \
             --with-pic \
             --prefix=/usr/local
 
