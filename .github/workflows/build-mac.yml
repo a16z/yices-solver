@@ -63,7 +63,7 @@ jobs:
 
         ARCH=$(uname -m)
         case "$ARCH" in
-          x86_64) MIN_OS_VERSION=11_0 ;;
+          x86_64) MIN_OS_VERSION=13_0 ;;
           arm64) MIN_OS_VERSION=14_0 ;;
           *) echo "Unknown architecture: $ARCH" && exit 1 ;;
         esac
@@ -85,7 +85,7 @@ jobs:
 
         ARCH=$(uname -m)
         case "$ARCH" in
-          x86_64) MIN_OS_VERSION=11.0 ;;
+          x86_64) MIN_OS_VERSION=13.0 ;;
           arm64) MIN_OS_VERSION=14.0 ;;
           *) echo "Unknown architecture: $ARCH" && exit 1 ;;
         esac
@@ -123,7 +123,7 @@ jobs:
 
   smoke-test:
     name: test ${{ matrix.os }} / py${{ matrix.py }}
-    needs: build-wheel
+    needs: test-publish
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
