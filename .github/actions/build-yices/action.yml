@@ -231,7 +231,9 @@ runs:
             --prefix="$INSTALL_DIR"
 
           N=$(nproc 2>/dev/null || sysctl -n hw.ncpu)
-          make -j$N static-bin lib
+
+          # static-lib builds the dynamic library statically linked against GMP and libpoly
+          make -j$N static-bin static-lib
         popd
 
     - name: Verify the build
