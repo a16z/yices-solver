@@ -34,12 +34,15 @@ jobs:
 
     - name: Install dependencies
       uses: ./.github/actions/install-dependencies
+      with:
+        use-sudo: false
 
     - name: Build Yices
       uses: ./.github/actions/build-yices
       with:
         yices-version: ${{ env.YICES_VERSION }}
         output-path: /tmp
+        use-sudo: false
 
     - name: Stage artifacts
       shell: bash

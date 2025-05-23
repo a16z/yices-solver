@@ -18,6 +18,10 @@ inputs:
     description: 'CUDD version to build'
     required: false
     default: '3.0.0'
+  use-sudo:
+    description: 'Whether to use sudo for building/installing'
+    required: false
+    default: 'true'
 
 runs:
   using: 'composite'
@@ -27,6 +31,14 @@ runs:
       run: |
         echo "INSTALL_DIR=${{ inputs.output-path }}/yices-${{ inputs.yices-version }}" >> $GITHUB_ENV
         echo "YICES_VERSION=${{ inputs.yices-version }}" >> $GITHUB_ENV
+
+        case "${{ inputs.use-sudo }}" in
+          true)  SUDO_CMD="sudo" ;;
+          false) SUDO_CMD="" ;;
+          *) echo "Invalid value for use-sudo: ${{ inputs.use-sudo }}" && exit 1 ;;
+        esac
+
+        echo "SUDO_CMD=$SUDO_CMD" >> $GITHUB_ENV
 
     - name: Build GMP
       shell: bash
@@ -65,7 +77,7 @@ runs:
           # uncomment to run tests
           # make check
 
-          sudo make install
+          $SUDO_CMD make install
         popd
 
     - name: Build libpoly
@@ -82,7 +94,7 @@ runs:
             -DCMAKE_BUILD_TYPE=Release
 
           make -j$(nproc 2>/dev/null || sysctl -n hw.ncpu) static_pic_poly
-          sudo make install
+          $SUDO_CMD make install
         popd
 
     - name: Build CUDD
@@ -109,7 +121,7 @@ runs:
           # uncomment to run tests
           # make check
 
-          sudo make install
+          $SUDO_CMD make install
         popd
 
     - name: Build Yices

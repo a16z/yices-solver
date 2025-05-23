@@ -1,5 +1,11 @@
 name: Install Dependencies
 
+inputs:
+  use-sudo:
+    description: 'Whether to use sudo for package installation'
+    required: false
+    default: 'true'
+
 runs:
   using: composite
   steps:
@@ -7,9 +13,15 @@ runs:
       if: runner.os == 'Linux'
       shell: bash
       run: |
-        sudo apt-get update
-        sudo apt-get install -y gperf cmake autoconf automake libtool
-        sudo apt-get install -y python3-pip python3-venv
+        case "${{ inputs.use-sudo }}" in
+          true)  SUDO_CMD="sudo" ;;
+          false) SUDO_CMD="" ;;
+          *) echo "Invalid value for use-sudo: ${{ inputs.use-sudo }}" && exit 1 ;;
+        esac
+
+        $SUDO_CMD apt-get update
+        $SUDO_CMD apt-get install -y gperf cmake autoconf automake libtool
+        $SUDO_CMD apt-get install -y python3-pip python3-venv
 
     - name: Install MacOS Dependencies
       if: runner.os == 'macOS'
