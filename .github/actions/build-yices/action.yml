@@ -56,6 +56,7 @@ runs:
         echo "Importing GMP signing key..."
         cat << 'EOF' | gpg --import
         -----BEGIN PGP PUBLIC KEY BLOCK-----
+
         mQFNBFDrIWMBCgCyyYoTAD/aL6Yl90eSJ1xuFpODTcwyRZsNSUZKSmKwnqXo9LgS
         2B00yVZ2nO2OrSmWPiYikTciitv04bAqFaggSstx6hlni6n3h2PL0jXpf9EI6qOO
         oKwi2IVtbBnJAhWpfRcAce6WEqvnav6KjuBM3lr8/5GzDV8tm6+X/G/paTnBqTB9
