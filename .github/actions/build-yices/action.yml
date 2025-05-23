@@ -255,13 +255,7 @@ runs:
         echo "TARGET_DIR=$TARGET_DIR" >> $GITHUB_ENV
 
         echo "TARGET_DIR: $TARGET_DIR"
-        ls -la "$TARGET_DIR"
-
-        echo "$TARGET_DIR/static_bin:"
-        ls -la "$TARGET_DIR/static_bin"
-
-        echo "$TARGET_DIR/lib:"
-        ls -la "$TARGET_DIR/lib"
+        tree "$TARGET_DIR"
 
         # Check that the binaries exist and can run
         echo "yices --version"
@@ -269,6 +263,32 @@ runs:
 
         echo "yices_smt2 --version"
         "$TARGET_DIR/static_bin/yices_smt2" --version
+
+    - name: Verify the dynamic library (Linux)
+      if: steps.cache-yices.outputs.cache-hit != 'true' && runner.os == 'Linux'
+      shell: bash
+      run: |
+        echo "Verifying the dynamic library..."
+
+        pushd "$TARGET_DIR"
+          for so in static_lib/*.so*; do
+            echo "  $so:"
+            ldd "$so"
+          done
+        popd
+
+    - name: Verify the dynamic library (Mac)
+      if: steps.cache-yices.outputs.cache-hit != 'true' && runner.os == 'macOS'
+      shell: bash
+      run: |
+        echo "Verifying the dynamic library..."
+
+        pushd "$TARGET_DIR"
+          for dylib in static_lib/*.dylib; do
+            echo "  $dylib:"
+            otool -L "$dylib"
+          done
+        popd
 
     - name: Move binaries to output directory
       if: steps.cache-yices.outputs.cache-hit != 'true'
@@ -288,6 +308,6 @@ runs:
 
         # move both shared and static libraries to the install directory
         # (mirrors the official Yices releases)
-        mv $TARGET_DIR/lib/* "$INSTALL_DIR/lib"
+        mv $TARGET_DIR/static_lib/* "$INSTALL_DIR/lib"
 
         echo "Done!"
