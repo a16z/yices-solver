@@ -19,20 +19,19 @@ runs:
           *) echo "Invalid value for use-sudo: ${{ inputs.use-sudo }}" && exit 1 ;;
         esac
 
+        DEPS="gperf cmake autoconf automake libtool glibc-static python3-pip python3-venv"
+
         # Detect package manager and install dependencies accordingly
         if command -v apt-get >/dev/null 2>&1; then
           # Debian/Ubuntu systems
           $SUDO_CMD apt-get update
-          $SUDO_CMD apt-get install -y gperf cmake autoconf automake libtool
-          $SUDO_CMD apt-get install -y python3-pip python3-venv
+          $SUDO_CMD apt-get install -y $DEPS
         elif command -v dnf >/dev/null 2>&1; then
           # RHEL/CentOS/Fedora/AlmaLinux systems (including manylinux containers)
-          $SUDO_CMD dnf install -y gperf cmake autoconf automake libtool
-          $SUDO_CMD dnf install -y python3-pip python3-devel
+          $SUDO_CMD dnf install -y $DEPS
         elif command -v yum >/dev/null 2>&1; then
           # Older RHEL/CentOS systems
-          $SUDO_CMD yum install -y gperf cmake autoconf automake libtool
-          $SUDO_CMD yum install -y python3-pip python3-devel
+          $SUDO_CMD yum install -y $DEPS
         else
           echo "No supported package manager found (apt-get, dnf, or yum)"
           exit 1
