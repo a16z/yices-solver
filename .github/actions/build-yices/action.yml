@@ -31,6 +31,8 @@ runs:
       run: |
         echo "INSTALL_DIR=${{ inputs.output-path }}/yices-${{ inputs.yices-version }}" >> $GITHUB_ENV
         echo "YICES_VERSION=${{ inputs.yices-version }}" >> $GITHUB_ENV
+        echo "RUNNER_ARCH=$(uname -m)" >> $GITHUB_ENV
+        echo "CACHE_KEY=yices-${{ inputs.yices-version }}-gmp-${{ inputs.gmp-version }}-cudd-${{ inputs.cudd-version }}-${{ runner.os }}-${{ env.RUNNER_ARCH }}-${{ hashFiles('.github/actions/build-yices/action.yml') }}" >> $GITHUB_ENV
 
         case "${{ inputs.use-sudo }}" in
           true)  SUDO_CMD="sudo" ;;
@@ -40,7 +42,37 @@ runs:
 
         echo "SUDO_CMD=$SUDO_CMD" >> $GITHUB_ENV
 
+    - name: Cache Yices build
+      id: cache-yices
+      uses: actions/cache@v4
+      with:
+        path: ${{ env.INSTALL_DIR }}
+        key: ${{ env.CACHE_KEY }}
+        restore-keys: |
+          ${{ env.CACHE_KEY }}
+
+    - name: Check cache hit
+      shell: bash
+      run: |
+        if [[ "${{ steps.cache-yices.outputs.cache-hit }}" == "true" ]]; then
+          echo "✅ Cache hit! Yices build found in cache, skipping build steps."
+          echo "📁 Cached build location: $INSTALL_DIR"
+
+          # Verify the cached build still works
+          if [[ -f "$INSTALL_DIR/bin/yices" ]]; then
+            echo "🔍 Verifying cached build..."
+            "$INSTALL_DIR/bin/yices" --version
+            echo "✅ Cached build verification successful!"
+          else
+            echo "❌ Cached build appears incomplete, will rebuild"
+            exit 1
+          fi
+        else
+          echo "❌ Cache miss, will build Yices from source"
+        fi
+
     - name: Build GMP
+      if: steps.cache-yices.outputs.cache-hit != 'true'
       shell: bash
       env:
         GMP_VERSION: ${{ inputs.gmp-version }}
@@ -122,6 +154,7 @@ runs:
         popd
 
     - name: Build libpoly
+      if: steps.cache-yices.outputs.cache-hit != 'true'
       shell: bash
       run: |
         set -euo pipefail
@@ -141,6 +174,7 @@ runs:
         popd
 
     - name: Build CUDD
+      if: steps.cache-yices.outputs.cache-hit != 'true'
       shell: bash
       env:
         CUDD_VERSION: ${{ inputs.cudd-version }}
@@ -169,6 +203,7 @@ runs:
         popd
 
     - name: Build Yices
+      if: steps.cache-yices.outputs.cache-hit != 'true'
       shell: bash
       run: |
         set -euo pipefail
@@ -198,6 +233,7 @@ runs:
         popd
 
     - name: Verify the build
+      if: steps.cache-yices.outputs.cache-hit != 'true'
       shell: bash
       run: |
         echo "Verifying the Yices build..."
@@ -231,6 +267,7 @@ runs:
         "$TARGET_DIR/static_bin/yices_smt2" --version
 
     - name: Move binaries to output directory
+      if: steps.cache-yices.outputs.cache-hit != 'true'
       shell: bash
       run: |
         set -euo pipefail
