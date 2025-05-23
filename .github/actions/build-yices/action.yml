@@ -10,6 +10,14 @@ inputs:
     description: 'Directory where Yices will be built and installed'
     required: false
     default: '/tmp'
+  gmp-version:
+    description: 'GMP version to build'
+    required: false
+    default: '6.3.0'
+  cudd-version:
+    description: 'CUDD version to build'
+    required: false
+    default: '3.0.0'
 
 runs:
   using: 'composite'
@@ -23,11 +31,28 @@ runs:
     - name: Build GMP
       shell: bash
       env:
-        GMP_VERSION: 6.3.0
+        GMP_VERSION: ${{ inputs.gmp-version }}
       run: |
         set -euo pipefail
 
-        curl -sSL https://ftp.gnu.org/gnu/gmp/gmp-${GMP_VERSION}.tar.xz | tar -xJ
+        # Download GMP tarball and signature
+        curl -sSL https://ftp.gnu.org/gnu/gmp/gmp-${GMP_VERSION}.tar.xz -o gmp-${GMP_VERSION}.tar.xz
+        curl -sSL https://ftp.gnu.org/gnu/gmp/gmp-${GMP_VERSION}.tar.xz.sig -o gmp-${GMP_VERSION}.tar.xz.sig
+
+        # Import the GMP signing key
+        gpg --keyserver keyserver.ubuntu.com --recv-keys 0x28C67298 || \
+        gpg --keyserver keys.openpgp.org --recv-keys 0x28C67298 || \
+        gpg --keyserver pgp.mit.edu --recv-keys 0x28C67298
+
+        # Verify the signature
+        gpg --verify gmp-${GMP_VERSION}.tar.xz.sig gmp-${GMP_VERSION}.tar.xz
+
+        # Extract only after verification succeeds
+        tar -xJ < gmp-${GMP_VERSION}.tar.xz
+
+        # Clean up downloaded files
+        rm -f gmp-${GMP_VERSION}.tar.xz gmp-${GMP_VERSION}.tar.xz.sig
+
         pushd gmp-${GMP_VERSION}
           ./configure \
             --disable-shared \
@@ -62,11 +87,13 @@ runs:
 
     - name: Build CUDD
       shell: bash
+      env:
+        CUDD_VERSION: ${{ inputs.cudd-version }}
       run: |
         set -euo pipefail
 
         # Clone CUDD
-        git clone --branch cudd-3.0.0 --single-branch --depth 1 https://github.com/ivmai/cudd
+        git clone --branch cudd-${CUDD_VERSION} --single-branch --depth 1 https://github.com/ivmai/cudd
 
         pushd cudd
           autoreconf -i
@@ -117,10 +144,16 @@ runs:
     - name: Verify the build
       shell: bash
       run: |
-        set -euo pipefail
-        echo "Verifying Yices build..."
+        if [[ -d "yices2/build" ]]; then
+          TARGET_DIR=$(ls -1d yices2/build/*-release 2>/dev/null | head -1)
+        fi
 
-        TARGET_DIR=$(find yices2/build -mindepth 1 -maxdepth 1 -type d | head -n 1)
+        if [[ -z "$TARGET_DIR" || ! -d "$TARGET_DIR" ]]; then
+          echo "::error::Could not find Yices build directory"
+          exit 1
+        fi
+
+        # set the target directory in the environment (so it can be used in the next step)
         echo "TARGET_DIR=$TARGET_DIR" >> $GITHUB_ENV
 
         echo "TARGET_DIR: $TARGET_DIR"
