@@ -4,7 +4,7 @@
 [![macOS Build](https://github.com/a16z/yices-solver/actions/workflows/build-mac.yml/badge.svg)](https://github.com/a16z/yices-solver/actions/workflows/build-mac.yml)
 [![Windows Build](https://github.com/a16z/yices-solver/actions/workflows/build-windows.yml/badge.svg)](https://github.com/a16z/yices-solver/actions/workflows/build-windows.yml)
 
-Platform-tagged wheels bundling the [Yices 2](https://github.com/SRI-CSL/yices2) SMT solver binaries (CLI + shared library).
+A platform-tagged Python package bundling the [Yices 2](https://github.com/SRI-CSL/yices2) SMT solver binaries, [available on PyPI](https://pypi.org/project/yices-solver/).
 
 Note that this *only* includes the binaries and not the Python bindings for yices, released separately as the [yices](https://pypi.org/project/yices/) package:
 
@@ -13,23 +13,13 @@ Note that this *only* includes the binaries and not the Python bindings for yice
 
 ## Usage
 
-Make the binaries available on the PATH:
+Just make the binaries available on the PATH:
 
 ```sh
 uv tool install yices-solver
 
 # check that the binary is available
 yices --version
-```
-
-Install in a venv using uv (recommended):
-
-```sh
-uv venv
-uv pip install yices-solver
-
-# check that the binary is available
-uv run yices --version
 ```
 
 Install in a venv using pip:
@@ -41,6 +31,27 @@ python -m pip install yices-solver
 
 # check that the binary is available
 yices --version
+```
+
+You can also add it to your pyproject.toml as a dependency, or inline as a script:
+
+```py
+#! /usr/bin/env uv run
+
+# /// script
+# requires-python = ">=3.12"
+# dependencies = [
+#   "yices-solver>=2.6.4",
+# ]
+# ///
+
+import subprocess
+
+print("$ which yices")
+subprocess.run(["which", "yices"])
+
+print("\n$ yices --version")
+subprocess.run(["yices", "--version"])
 ```
 
 ## How this works
