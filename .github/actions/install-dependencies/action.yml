@@ -47,5 +47,5 @@ runs:
     - name: Install Python Dependencies
       shell: bash
       run: |
-        pip install --upgrade pip build wheel setuptools delocate
+        python3 -m pip install --upgrade pip build wheel setuptools delocate
 
