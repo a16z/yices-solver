@@ -19,7 +19,7 @@ runs:
           *) echo "Invalid value for use-sudo: ${{ inputs.use-sudo }}" && exit 1 ;;
         esac
 
-        DEPS="gperf cmake autoconf automake libtool glibc-static"
+        DEPS="gperf cmake autoconf automake libtool glibc-static tree"
 
         # Detect package manager and install dependencies accordingly
         if command -v apt-get >/dev/null 2>&1; then
@@ -44,7 +44,7 @@ runs:
       if: runner.os == 'macOS'
       shell: bash
       run: |
-        brew install automake cmake libtool
+        brew install automake cmake libtool tree
 
     - name: Install Python Dependencies
       shell: bash

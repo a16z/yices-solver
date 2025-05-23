@@ -32,18 +32,6 @@ runs:
         echo "Successfully found wheel for yices-solver version ${{ inputs.wheel-version }}:"
         ls -la "${WHEEL_FILES[0]}"
 
-    - name: Install tree
-      shell: bash
-      if: runner.os == 'Linux'
-      run: |
-        sudo apt-get install -y tree
-
-    - name: Install tree
-      shell: bash
-      if: runner.os == 'macOS'
-      run: |
-        brew install tree
-
     - name: Inspect wheel contents
       shell: bash
       run: |
