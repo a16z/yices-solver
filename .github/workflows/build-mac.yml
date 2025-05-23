@@ -1,4 +1,4 @@
-name: build-macos-wheel
+name: build-macos
 
 on:
   workflow_dispatch:
@@ -15,6 +15,10 @@ on:
       - '.github/workflows/build-mac.yml'
       - '.github/actions/**'
 
+env:
+  YICES_VERSION: ${{ github.event.inputs.yices_version || (github.ref_name != 'main' && github.ref_name) || '2.6.4' }}
+  WHEEL_VERSION: ${{ github.event.inputs.yices_version || (github.ref_name != 'main' && github.ref_name) || '2.6.4' }}.post${{ github.run_number }}
+
 jobs:
   build-wheel:
     runs-on: ${{ matrix.os }}
@@ -22,8 +26,6 @@ jobs:
       fail-fast: false
       matrix:
         os: [macos-13, macos-latest]
-    env:
-      YICES_VERSION: ${{ github.event.inputs.yices_version || (github.ref_name != 'main' && github.ref_name) || '2.6.4' }}
 
     steps:
     - uses: actions/checkout@v4
@@ -54,16 +56,18 @@ jobs:
     - name: Build wheel
       shell: bash
       env:
-        SETUPTOOLS_SCM_PRETEND_VERSION: ${{ env.YICES_VERSION }}
+        SETUPTOOLS_SCM_PRETEND_VERSION: ${{ env.WHEEL_VERSION }}
       run: |
         set -euo pipefail
         echo "Building wheel for yices-solver version ${SETUPTOOLS_SCM_PRETEND_VERSION}"
-        python -m build --wheel
+        python -m build --wheel \
+          --config-setting="--build-option=--plat-name" \
+          --config-setting="--build-option=macosx_11_0_${{ runner.arch }}"
 
     - name: Verify and inspect wheel
       uses: ./.github/actions/verify-wheel
       with:
-        wheel-version: ${{ env.YICES_VERSION }}
+        wheel-version: ${{ env.WHEEL_VERSION }}
         wheel-dir: dist/
 
     # repair / tag the wheel for macos
@@ -77,6 +81,29 @@ jobs:
       with:
         name: wheel-${{ matrix.os }}
         path: dist/*.whl
+
+  test-publish:
+    # pypa/gh-action-pypi-publish@release/v1 is docker-based, so needs to run on a recent linux
+    runs-on: ubuntu-latest
+    needs: build-wheel
+    permissions:
+      id-token: write
+
+    steps:
+    - uses: actions/download-artifact@v4
+      with:
+        pattern: wheel-macos*
+        path: dist/
+        # from the docs for download-artifact:
+        #   If true, the downloaded artifacts will be in the same directory specified by path.
+        # so all the wheels should end up in dist/
+        merge-multiple: true
+
+    # automatically discovers wheel files in dist/ and publishes them
+    - name: Publish package distributions to TestPyPI
+      uses: pypa/gh-action-pypi-publish@release/v1
+      with:
+        repository-url: https://test.pypi.org/legacy/
 
   smoke-test:
     name: test ${{ matrix.os }} / py${{ matrix.py }}
@@ -95,11 +122,9 @@ jobs:
         with:
           python-version: ${{ matrix.py }}
 
-      # download wheels from build job artifacts
-      - uses: actions/download-artifact@v4
-        with:
-          name: wheel-${{ matrix.os }}
-          path: ./wheels
+      - name: Wait for PyPI index to be updated
+        run: |
+          sleep 600
 
       - name: Install wheel
         shell: bash
@@ -109,7 +134,9 @@ jobs:
           python -m venv venv
           source venv/bin/activate
 
-          pip install --no-index --find-links=./wheels yices-solver
+          pip install -vv \
+            --index-url https://test.pypi.org/simple/ \
+            "yices-solver==${WHEEL_VERSION}"
 
       - name: Inspect venv
         shell: bash

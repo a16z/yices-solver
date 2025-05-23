@@ -1,4 +1,4 @@
-name: build-linux-wheel
+name: build-linux
 
 on:
   workflow_dispatch:
