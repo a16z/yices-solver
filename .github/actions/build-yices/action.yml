@@ -31,8 +31,10 @@ runs:
       run: |
         echo "INSTALL_DIR=${{ inputs.output-path }}/yices-${{ inputs.yices-version }}" >> $GITHUB_ENV
         echo "YICES_VERSION=${{ inputs.yices-version }}" >> $GITHUB_ENV
-        echo "RUNNER_ARCH=$(uname -m)" >> $GITHUB_ENV
-        echo "CACHE_KEY=yices-${{ inputs.yices-version }}-gmp-${{ inputs.gmp-version }}-cudd-${{ inputs.cudd-version }}-${{ runner.os }}-${{ env.RUNNER_ARCH }}-${{ hashFiles('.github/actions/build-yices/action.yml') }}" >> $GITHUB_ENV
+
+        RUNNER_ARCH=$(uname -m)
+        echo "RUNNER_ARCH=$RUNNER_ARCH" >> $GITHUB_ENV
+        echo "CACHE_KEY=yices-${{ inputs.yices-version }}-gmp-${{ inputs.gmp-version }}-cudd-${{ inputs.cudd-version }}-${{ runner.os }}-${RUNNER_ARCH}-${{ hashFiles('.github/actions/build-yices/action.yml') }}" >> $GITHUB_ENV
 
         case "${{ inputs.use-sudo }}" in
           true)  SUDO_CMD="sudo" ;;
