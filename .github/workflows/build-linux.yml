@@ -33,6 +33,32 @@ jobs:
       with:
         python-version: 3.12
 
+    - name: Setup Python (manylinux_2_28_x86_64)
+      shell: bash
+      env:
+        MAJOR: 3
+        MINOR: 11
+      run: |
+        set -euo pipefail
+
+        # Locate Python in manylinux container
+        PYBIN="/opt/python/cp${MAJOR}${MINOR}-cp${MAJOR}${MINOR}/bin"
+
+        # Verify Python exists
+        if [ ! -f "${PYBIN}/python3" ]; then
+          echo "Python ${MAJOR}.${MINOR} not found at ${PYBIN}"
+          echo "Available Python versions:"
+          ls -la /opt/python/
+          exit 1
+        fi
+
+        # Add to PATH and set as default
+        echo "${PYBIN}" >> $GITHUB_PATH
+
+        # Verify installation
+        python3 --version
+        pip3 --version
+
     - name: Install dependencies
       uses: ./.github/actions/install-dependencies
       with:
