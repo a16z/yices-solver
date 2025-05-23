@@ -60,9 +60,17 @@ jobs:
       run: |
         set -euo pipefail
         echo "Building wheel for yices-solver version ${SETUPTOOLS_SCM_PRETEND_VERSION}"
+
+        ARCH=$(uname -m)
+        case "$ARCH" in
+          x86_64) MIN_OS_VERSION=11_0 ;;
+          arm64) MIN_OS_VERSION=14_0 ;;
+          *) echo "Unknown architecture: $ARCH" && exit 1 ;;
+        esac
+
         python -m build --wheel \
           --config-setting="--build-option=--plat-name" \
-          --config-setting="--build-option=macosx_11_0_${{ runner.arch }}"
+          --config-setting="--build-option=macosx_${MIN_OS_VERSION}_${ARCH}"
 
     - name: Verify and inspect wheel
       uses: ./.github/actions/verify-wheel
@@ -74,7 +82,15 @@ jobs:
     - name: Delocate wheel
       shell: bash
       run: |
-        delocate-wheel --require-target-macos-version 11.0 -v -w dist/ dist/*.whl
+
+        ARCH=$(uname -m)
+        case "$ARCH" in
+          x86_64) MIN_OS_VERSION=11.0 ;;
+          arm64) MIN_OS_VERSION=14.0 ;;
+          *) echo "Unknown architecture: $ARCH" && exit 1 ;;
+        esac
+
+        delocate-wheel --require-target-macos-version ${MIN_OS_VERSION} -v -w dist/ dist/*.whl
 
     # upload the finished wheel
     - uses: actions/upload-artifact@v4
