@@ -42,13 +42,12 @@ jobs:
       run: |
         pip list
 
-    # download yices release
-    - uses: ./.github/actions/download-yices
+    - name: Download Yices release
+      uses: ./.github/actions/download-yices
       with:
         yices-version: ${{ env.YICES_VERSION }}
         output-path: /tmp
 
-    # stage artifacts into the Python package tree
     - name: Stage artifacts
       shell: bash
       run: |
@@ -61,15 +60,13 @@ jobs:
         mv /tmp/yices-${YICES_VERSION}/bin/libyices.dll yices_solver/lib/
         mv /tmp/yices-${YICES_VERSION}/bin/* yices_solver/Scripts/
 
-
-    # build the wheel
     - name: Build wheel
       shell: bash
       env:
         SETUPTOOLS_SCM_PRETEND_VERSION: ${{ env.WHEEL_VERSION }}
       run: |
         echo "Building wheel for yices-solver version ${WHEEL_VERSION}"
-        python -m build --wheel
+        python3 -m build --wheel
 
     - name: Verify wheel version
       uses: ./.github/actions/verify-wheel

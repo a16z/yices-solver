@@ -63,7 +63,7 @@ jobs:
         echo "Building wheel for yices-solver version ${WHEEL_VERSION}"
 
         # https://stackoverflow.com/questions/73962721/how-to-create-platform-specific-python-wheel-with-build-tool
-        python -m build --wheel \
+        python3 -m build --wheel \
           --config-setting="--build-option=--plat-name" \
           --config-setting="--build-option=manylinux_2_28_x86_64"
           # --config-setting="--build-option=--no-universal"

@@ -50,7 +50,7 @@ runs:
         set -euo pipefail
 
         # Unpack the wheel
-        python -m wheel unpack ${{ inputs.wheel-dir }}/*.whl
+        python3 -m wheel unpack ${{ inputs.wheel-dir }}/*.whl
 
         echo "Wheel contents:"
         if [[ "${{ runner.os }}" == "Windows" ]]; then
