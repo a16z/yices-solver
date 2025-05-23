@@ -48,23 +48,28 @@ runs:
         set -euo pipefail
 
         # Download GMP tarball and signature
+        echo "Downloading GMP tarball and signature..."
         curl -sSL https://ftp.gnu.org/gnu/gmp/gmp-${GMP_VERSION}.tar.xz -o gmp-${GMP_VERSION}.tar.xz
         curl -sSL https://ftp.gnu.org/gnu/gmp/gmp-${GMP_VERSION}.tar.xz.sig -o gmp-${GMP_VERSION}.tar.xz.sig
 
         # Import the GMP signing key
+        echo "Importing GMP signing key..."
         gpg --keyserver keyserver.ubuntu.com --recv-keys 0x28C67298 || \
         gpg --keyserver keys.openpgp.org --recv-keys 0x28C67298 || \
         gpg --keyserver pgp.mit.edu --recv-keys 0x28C67298
 
         # Verify the signature
+        echo "Verifying GMP signature..."
         gpg --verify gmp-${GMP_VERSION}.tar.xz.sig gmp-${GMP_VERSION}.tar.xz
 
         # Extract only after verification succeeds
+        echo "Extracting GMP tarball..."
         tar -xJ < gmp-${GMP_VERSION}.tar.xz
 
         # Clean up downloaded files
         rm -f gmp-${GMP_VERSION}.tar.xz gmp-${GMP_VERSION}.tar.xz.sig
 
+        echo "Building GMP..."
         pushd gmp-${GMP_VERSION}
           ./configure \
             --disable-shared \
@@ -85,8 +90,10 @@ runs:
       run: |
         set -euo pipefail
 
-        # Clone libpoly
+        echo "Cloning libpoly..."
         git clone --depth 1 https://github.com/SRI-CSL/libpoly
+
+        echo "Building libpoly..."
         pushd libpoly/build
           cmake .. \
             -DLIBPOLY_BUILD_STATIC=ON \
@@ -104,9 +111,10 @@ runs:
       run: |
         set -euo pipefail
 
-        # Clone CUDD
+        echo "Cloning CUDD..."
         git clone --branch cudd-${CUDD_VERSION} --single-branch --depth 1 https://github.com/ivmai/cudd
 
+        echo "Building CUDD..."
         pushd cudd
           autoreconf -i
 
@@ -128,12 +136,12 @@ runs:
       shell: bash
       run: |
         set -euo pipefail
-        echo "Building Yices ${YICES_VERSION}..."
 
-        # Clone Yices repository
+        echo "Cloning Yices (branch: Yices-${YICES_VERSION})..."
         git clone --branch "Yices-${YICES_VERSION}" --depth 1 --single-branch \
           https://github.com/SRI-CSL/yices2
 
+        echo "Building Yices..."
         pushd yices2
           # Configure and build Yices
           autoconf
@@ -156,6 +164,8 @@ runs:
     - name: Verify the build
       shell: bash
       run: |
+        echo "Verifying the Yices build..."
+
         if [[ -d "yices2/build" ]]; then
           TARGET_DIR=$(ls -1d yices2/build/*-release 2>/dev/null | head -1)
         fi
@@ -189,6 +199,8 @@ runs:
       run: |
         set -euo pipefail
 
+        echo "Moving binaries to output directory..."
+
         mkdir -p "$INSTALL_DIR/bin"
         mkdir -p "$INSTALL_DIR/lib"
 
@@ -200,3 +212,5 @@ runs:
         # move both shared and static libraries to the install directory
         # (mirrors the official Yices releases)
         mv $TARGET_DIR/lib/* "$INSTALL_DIR/lib"
+
+        echo "Done!"
