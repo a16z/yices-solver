@@ -6,23 +6,66 @@
 
 A platform-tagged Python package bundling the [Yices 2](https://github.com/SRI-CSL/yices2) SMT solver binaries, [available on PyPI](https://pypi.org/project/yices-solver/).
 
-Note that this *only* includes the binaries and not the Python bindings for yices, released separately as the [yices](https://pypi.org/project/yices/) package:
+
+### What is Yices?
+
+Yices is a fast and open source SMT (Satistifiability Modulo Theories) solver, comparable to Z3, CVC5, Bitwuzla, etc.
+
+SMT solvers are commonly used in software verification, bug finding, constraint solving and optimization.
+
+For instance, [a16z/halmos](https://github.com/a16z/halmos) is a symbolic testing tool that uses SMT solvers such as Yices as a backend.
+
+
+### Why a `yices-solver` Python package?
+
+Until now, there was no easy way for a Python application to require the Yices runtime. Users would typically be instructeed to install Yices separately or to build it from source. This package solves this, it is now possible to require installation of the Yices binaries directly:
+
+```toml
+# pyproject.toml
+
+[project]
+dependencies = [
+    "yices-solver==2.6.5"
+]
+```
+
+The dependency resolution mechanism will take care of resolving the appropriate version of the package to install given the current platform and architecture (e.g. Linux/x86, macOS/ARM, etc.).
+
+
+### Difference with the `yices` package
+
+Note that this package *only* includes the binaries and not the Python bindings for yices. The Python bindings are released separately as the [yices](https://pypi.org/project/yices/) package on PyPI, published by the authors of Yices.
+
+In summary:
 
 - [yices-solver](https://pypi.org/project/yices-solver/) (this package): binaries and shared libraries only, no Python bindings
 - [yices](https://pypi.org/project/yices/) (published by SRI): Python bindings only, no binaries or shared libraries
 
-## Usage
 
-Just make the binaries available on the PATH:
+## Quick start
+
+To use the solver interactively, we recommend using [uv](https://github.com/astral-sh/uv):
 
 ```sh
+# this will:
+# - create a virtual environment,
+# - install yices-solver in it
+# - make the binaries (e.g. yices-smt2) available on the PATH
 uv tool install yices-solver
 
 # check that the binary is available
-yices --version
+yices-smt2 --version
+
+# solve a simple smt2 query
+echo "(set-logic QF_LIA) (declare-const x Int) (assert (< x 10)) (check-sat) (get-model)" | yices-smt2
 ```
 
-Install in a venv using pip:
+
+## Advanced usage
+
+### In projects
+
+To install in a manually managed venv using pip:
 
 ```sh
 python -m venv .venv
@@ -33,7 +76,9 @@ python -m pip install yices-solver
 yices --version
 ```
 
-You can also add it to your pyproject.toml as a dependency, or inline as a script:
+### In scripts
+
+You can also add it to your pyproject.toml as a dependency or inline as a script using a uv shebang:
 
 ```py
 #! /usr/bin/env uv run
@@ -41,18 +86,31 @@ You can also add it to your pyproject.toml as a dependency, or inline as a scrip
 # /// script
 # requires-python = ">=3.12"
 # dependencies = [
-#   "yices-solver>=2.6.4",
+#   "yices-solver==2.6.5",
 # ]
 # ///
 
 import subprocess
 
-print("$ which yices")
-subprocess.run(["which", "yices"])
+# this should print the location the yices binary installed inside the temporary venv
+subprocess.run(["which", "yices-smt2"])
 
-print("\n$ yices --version")
-subprocess.run(["yices", "--version"])
+# this should invoke the yices binary as an external process and print `sat`
+subprocess.run(
+    ['yices-smt2'],
+    input='(set-logic QF_LIA) (declare-const x Int) (assert (> x 0)) (check-sat)',
+    text=True
+)
 ```
+
+### With the Python bindings
+
+Support is experimental and needs to be documented, but it should be possible to:
+- install both `yices` and `yices-solver`
+- locate the `lib/` directory in the venv
+- overwrite the dynamic library loading path (e.g. `DYLD_LIBRARY_PATH` on macOS)
+- import `yices` such that libyices loads properly and the API can be used normally
+
 
 ## How this works
 
@@ -65,11 +123,18 @@ We publish 4 wheels:
 - `yices_solver-x.y.z-py3-none-win_amd64.whl`
 
 The Linux and macOS wheels are:
-- built from source with the appropriate Yices tag
-- with MCSAT enabled
+- built from source with the appropriate Yices tag (meaning that `yices_solver-x.y.z` should package the binaries for Yices tag `x.y.z`)
+- with MCSAT support enabled
 - statically linked against libcudd, libpoly and GMP
 
-The Windows wheel is not built from source, we extract the official Yices release binaries and repackage them as a wheel.
+The Windows wheel is not built from source, we extract the official Yices release binaries and repackage them as a wheel. A build from source on Windows would be a welcome contribution!
+
+We try to make the publishing process as transparent and secure as possible, which is why we use [Trusted Publishing](https://blog.trailofbits.com/2023/05/23/trusted-publishing-a-new-benchmark-for-packaging-security/).
+
+The build scripts can be found here:
+- [.github/workflows/build-linux.yml](https://github.com/a16z/yices-solver/blob/main/.github/workflows/build-linux.yml)
+- [.github/workflows/build-mac.yml](https://github.com/a16z/yices-solver/blob/main/.github/workflows/build-mac.yml)
+[.github/workflows/build-windows.yml](https://github.com/a16z/yices-solver/blob/main/.github/workflows/build-windows.yml)
 
 
 ### Installation
