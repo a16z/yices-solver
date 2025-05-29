@@ -3,6 +3,12 @@ name: release
 on:
   push:
     tags: [ "v*.*.*" ]  # e.g. "v2.6.5"
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to release (e.g., 2.6.5)'
+        required: true
+        type: string
 
 jobs:
   prepare:
@@ -14,11 +20,18 @@ jobs:
       - name: Calculate versions
         id: version
         run: |
-          TAG_NAME="${{ github.ref_name }}"
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            # Manual dispatch - use input version
+            YICES_VERSION="${{ github.event.inputs.version }}"
+            TAG_NAME="v${YICES_VERSION}"
+          else
+            # Tag push - use tag name
+            TAG_NAME="${{ github.ref_name }}"
+            # Strip 'v' prefix if present (v2.6.5 -> 2.6.5)
+            YICES_VERSION="${TAG_NAME#v}"
+          fi
 
-          # Strip 'v' prefix if present (v2.6.5 -> 2.6.5)
-          YICES_VERSION="${TAG_NAME#v}"
-          WHEEL_VERSION="${TAG_NAME}.post${{ github.run_number }}"
+          WHEEL_VERSION="${YICES_VERSION}.post${{ github.run_number }}"
 
           echo "Yices version: ${YICES_VERSION}"
           echo "Wheel version: ${WHEEL_VERSION}"
@@ -29,6 +42,9 @@ jobs:
   build-linux:
     needs: prepare
     uses: ./.github/workflows/build-linux.yml
+    permissions:
+      id-token: write
+      contents: read
     with:
       yices_version: ${{ needs.prepare.outputs.yices_version }}
       wheel_version: ${{ needs.prepare.outputs.wheel_version }}
@@ -36,6 +52,9 @@ jobs:
   build-macos:
     needs: prepare
     uses: ./.github/workflows/build-mac.yml
+    permissions:
+      id-token: write
+      contents: read
     with:
       yices_version: ${{ needs.prepare.outputs.yices_version }}
       wheel_version: ${{ needs.prepare.outputs.wheel_version }}
@@ -43,6 +62,9 @@ jobs:
   build-windows:
     needs: prepare
     uses: ./.github/workflows/build-windows.yml
+    permissions:
+      id-token: write
+      contents: read
     with:
       yices_version: ${{ needs.prepare.outputs.yices_version }}
       wheel_version: ${{ needs.prepare.outputs.wheel_version }}
