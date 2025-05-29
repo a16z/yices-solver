@@ -70,7 +70,7 @@ To install in a manually managed venv using pip:
 ```sh
 python -m venv .venv
 source .venv/bin/activate
-python -m pip install yices-solver
+python -m pip install "yices-solver~=2.6.5"
 
 # check that the binary is available
 yices --version
@@ -86,7 +86,7 @@ You can also add it to your pyproject.toml as a dependency or inline as a script
 # /// script
 # requires-python = ">=3.12"
 # dependencies = [
-#   "yices-solver==2.6.5",
+#   "yices-solver~=2.6.5",
 # ]
 # ///
 

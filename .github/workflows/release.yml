@@ -1,0 +1,121 @@
+name: release
+
+on:
+  push:
+    tags: [ "v*.*.*" ]  # e.g. "v2.6.5"
+
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    outputs:
+      yices_version: ${{ steps.version.outputs.yices_version }}
+      wheel_version: ${{ steps.version.outputs.wheel_version }}
+    steps:
+      - name: Calculate versions
+        id: version
+        run: |
+          TAG_NAME="${{ github.ref_name }}"
+
+          # Strip 'v' prefix if present (v2.6.5 -> 2.6.5)
+          YICES_VERSION="${TAG_NAME#v}"
+          WHEEL_VERSION="${TAG_NAME}.post${{ github.run_number }}"
+
+          echo "Yices version: ${YICES_VERSION}"
+          echo "Wheel version: ${WHEEL_VERSION}"
+
+          echo "yices_version=${YICES_VERSION}" >> $GITHUB_OUTPUT
+          echo "wheel_version=${WHEEL_VERSION}" >> $GITHUB_OUTPUT
+
+  build-linux:
+    needs: prepare
+    uses: ./.github/workflows/build-linux.yml
+    with:
+      yices_version: ${{ needs.prepare.outputs.yices_version }}
+      wheel_version: ${{ needs.prepare.outputs.wheel_version }}
+
+  build-macos:
+    needs: prepare
+    uses: ./.github/workflows/build-mac.yml
+    with:
+      yices_version: ${{ needs.prepare.outputs.yices_version }}
+      wheel_version: ${{ needs.prepare.outputs.wheel_version }}
+
+  build-windows:
+    needs: prepare
+    uses: ./.github/workflows/build-windows.yml
+    with:
+      yices_version: ${{ needs.prepare.outputs.yices_version }}
+      wheel_version: ${{ needs.prepare.outputs.wheel_version }}
+
+  publish-release:
+    runs-on: ubuntu-latest
+    needs: [prepare, build-linux, build-macos, build-windows]
+    permissions:
+      id-token: write
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download all workflow artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: wheel-*
+          path: dist/
+          merge-multiple: true
+
+      - name: List collected wheels
+        run: |
+          echo "Collected wheels for release:"
+          ls -la dist/
+          echo "Total wheels: $(ls -1 dist/*.whl | wc -l)"
+
+      - name: Validate wheels
+        run: |
+          # Check that we have wheels for all expected platforms
+          EXPECTED_PATTERNS=(
+            "*linux*.whl"
+            "*macosx*.whl"
+            "*win*.whl"
+          )
+
+          for pattern in "${EXPECTED_PATTERNS[@]}"; do
+            if ! ls dist/${pattern} 1> /dev/null 2>&1; then
+              echo "ERROR: No wheels found matching pattern: ${pattern}"
+              echo "Available wheels:"
+              ls -la dist/
+              exit 1
+            else
+              echo "✓ Found wheels matching: ${pattern}"
+              ls -la dist/${pattern}
+            fi
+          done
+
+      - name: Publish package distributions to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          verbose: true
+
+      - name: Create GitHub Release
+        uses: actions/github-script@v7
+        env:
+          WHEEL_VERSION: ${{ needs.prepare.outputs.wheel_version }}
+        with:
+          script: |
+            const tag = context.ref.replace('refs/tags/', '');
+            const version = process.env.WHEEL_VERSION;
+
+            try {
+              await github.rest.repos.createRelease({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                tag_name: tag,
+                name: `Release ${version}`,
+                body: `Yices Solver Python wheels for version ${version}\n\nIncludes wheels for:\n- Linux (manylinux_2_28_x86_64)\n- macOS (Intel and Apple Silicon)\n- Windows (amd64)\n\nInstall with: \`pip install yices-solver==${version}\``,
+                draft: false,
+                prerelease: false
+              });
+              console.log(`Created GitHub release for ${tag}`);
+            } catch (error) {
+              console.log(`Could not create release: ${error.message}`);
+              // Don't fail the workflow if release already exists
+            }

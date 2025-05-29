@@ -1,13 +1,22 @@
 name: build-windows
 
 on:
+  workflow_call:
+    inputs:
+      yices_version:
+        description: "Upstream Yices version (e.g. 2.6.5)"
+        required: true
+        type: string
+      wheel_version:
+        description: "Python wheel version (e.g. 2.6.5.post123)"
+        required: true
+        type: string
   workflow_dispatch:
     inputs:
       yices_version:
         description: "Upstream Yices version (e.g. 2.6.5)"
         required: true
   push:
-    tags: [ "*.*.*" ]  # e.g. "2.6.5"
     branches:
       - main
     paths:
@@ -16,8 +25,8 @@ on:
       - '.github/actions/**'
 
 env:
-  YICES_VERSION: ${{ github.event.inputs.yices_version || (github.ref_name != 'main' && github.ref_name) || '2.6.4' }}
-  WHEEL_VERSION: ${{ github.event.inputs.yices_version || (github.ref_name != 'main' && github.ref_name) || '2.6.4' }}.post${{ github.run_number }}
+  YICES_VERSION: ${{ inputs.yices_version || github.event.inputs.yices_version || (github.ref_name != 'main' && github.ref_name) || '2.6.4' }}
+  WHEEL_VERSION: ${{ inputs.wheel_version || (github.event.inputs.yices_version || (github.ref_name != 'main' && github.ref_name) || '2.6.4') }}.post${{ github.run_number }}
 
 jobs:
   build-wheel:
@@ -127,8 +136,7 @@ jobs:
           python-version: ${{ matrix.py }}
 
       - name: Wait for PyPI index to be updated
-        run: |
-          sleep 600
+        run: sleep 600
 
       - name: Install wheel
         shell: bash
@@ -144,8 +152,7 @@ jobs:
 
       - name: Inspect venv
         shell: bash
-        run: |
-          ls -la venv/Scripts/
+        run: ls -la venv/Scripts/
 
       - name: Test binaries
         uses: ./.github/actions/test-binaries
