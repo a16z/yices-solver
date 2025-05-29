@@ -76,6 +76,11 @@ python -m pip install "yices-solver~=2.6.5"
 yices --version
 ```
 
+
+> [!TIP]
+> In order to keep the version number of this package and of yices in sync (e.g. version 2.6.5 of `yices-solver` should bundle version 2.6.5 of the Yices binaries), we use [post-release](https://peps.python.org/pep-0440/#post-releases) tags when we make changes to the CI scripts. As a result, you should probably use a version specifier like `"yices-solver~=2.6.5"` to pick-up the latest post-release tag for the 2.6.5 version.
+
+
 ### In scripts
 
 You can also add it to your pyproject.toml as a dependency or inline as a script using a uv shebang:
