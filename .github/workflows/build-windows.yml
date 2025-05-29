@@ -26,7 +26,7 @@ on:
 
 env:
   YICES_VERSION: ${{ inputs.yices_version || github.event.inputs.yices_version || (github.ref_name != 'main' && github.ref_name) || '2.6.4' }}
-  WHEEL_VERSION: ${{ inputs.wheel_version || (github.event.inputs.yices_version || (github.ref_name != 'main' && github.ref_name) || '2.6.4') }}.post${{ github.run_number }}
+  WHEEL_VERSION: ${{ inputs.wheel_version || format('{0}.post{1}', (inputs.yices_version || github.event.inputs.yices_version || (github.ref_name != 'main' && github.ref_name) || '2.6.4'), github.run_number) }}
 
 jobs:
   build-wheel:
