@@ -110,6 +110,7 @@ jobs:
   test-publish:
     runs-on: ubuntu-latest
     needs: build-wheel
+    environment: testpypi
     permissions:
       contents: read
 

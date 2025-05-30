@@ -119,6 +119,7 @@ jobs:
     # pypa/gh-action-pypi-publish@release/v1 is docker-based, so needs to run on a recent linux
     runs-on: ubuntu-latest
     needs: build-wheel
+    environment: testpypi
     permissions:
       contents: read
 
