@@ -78,6 +78,7 @@ jobs:
     needs: [prepare, build-linux, build-macos, build-windows]
     permissions:
       contents: write
+      id-token: write
     steps:
       - uses: actions/checkout@v4
 
