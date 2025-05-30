@@ -53,7 +53,6 @@ jobs:
     needs: prepare
     uses: ./.github/workflows/build-mac.yml
     permissions:
-      id-token: write
       contents: read
     with:
       yices_version: ${{ needs.prepare.outputs.yices_version }}
@@ -63,7 +62,6 @@ jobs:
     needs: prepare
     uses: ./.github/workflows/build-windows.yml
     permissions:
-      id-token: write
       contents: read
     with:
       yices_version: ${{ needs.prepare.outputs.yices_version }}
@@ -74,7 +72,6 @@ jobs:
     environment: pypi
     needs: [prepare, build-linux, build-macos, build-windows]
     permissions:
-      id-token: write
       contents: write
     steps:
       - uses: actions/checkout@v4
