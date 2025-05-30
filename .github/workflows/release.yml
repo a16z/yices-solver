@@ -58,6 +58,8 @@ jobs:
     with:
       yices_version: ${{ needs.prepare.outputs.yices_version }}
       wheel_version: ${{ needs.prepare.outputs.wheel_version }}
+      run_local_tests: true
+      run_remote_tests: false
 
   build-windows:
     needs: prepare
@@ -67,6 +69,8 @@ jobs:
     with:
       yices_version: ${{ needs.prepare.outputs.yices_version }}
       wheel_version: ${{ needs.prepare.outputs.wheel_version }}
+      run_local_tests: true
+      run_remote_tests: false
 
   publish-release:
     runs-on: ubuntu-latest
