@@ -127,7 +127,7 @@ jobs:
   test-publish:
     runs-on: ubuntu-latest
 
-    if: ${{ inputs.run_remote_tests || github.event_name == 'push' }}
+    if: ${{ inputs.run_remote_tests }}
 
     needs: build-wheel
     environment: testpypi
@@ -193,7 +193,7 @@ jobs:
     needs: test-publish
     runs-on: ${{ matrix.os }}
 
-    if: ${{ inputs.run_remote_tests || github.event_name == 'push' }}
+    if: ${{ inputs.run_remote_tests }}
 
     strategy:
       fail-fast: false
@@ -236,7 +236,7 @@ jobs:
     needs: build-wheel
     runs-on: ${{ matrix.os }}
 
-    if: ${{ inputs.run_local_tests || github.event_name == 'push' }}
+    if: ${{ inputs.run_local_tests }}
 
     strategy:
       fail-fast: false
@@ -254,9 +254,8 @@ jobs:
       - name: Download wheel artifact
         uses: actions/download-artifact@v4
         with:
-          pattern: wheel-macos*
+          pattern: wheel-${{ matrix.os }}
           path: dist/
-          merge-multiple: true
 
       - name: Install wheel locally
         shell: bash

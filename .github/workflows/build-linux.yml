@@ -154,7 +154,7 @@ jobs:
 
     # skip publishing to testpypi when called by another workflow
     # https://github.com/pypi/warehouse/issues/11096
-    if: ${{ inputs.run_remote_tests || github.event_name == 'push' }}
+    if: ${{ inputs.run_remote_tests }}
 
     needs: build-wheel
     environment: testpypi
@@ -191,7 +191,7 @@ jobs:
     needs: test-publish
     runs-on: ubuntu-latest
 
-    if: ${{ inputs.run_remote_tests || github.event_name == 'push' }}
+    if: ${{ inputs.run_remote_tests }}
 
     container:
       image: quay.io/pypa/manylinux_${{ matrix.manylinux_version }}_x86_64
@@ -242,7 +242,7 @@ jobs:
     needs: build-wheel
     runs-on: ubuntu-latest
 
-    if: ${{ inputs.run_local_tests || github.event_name == 'push' }}
+    if: ${{ inputs.run_local_tests }}
 
     container:
       image: quay.io/pypa/manylinux_${{ matrix.manylinux_version }}_x86_64
