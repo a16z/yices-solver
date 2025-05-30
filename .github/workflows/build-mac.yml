@@ -149,36 +149,8 @@ jobs:
     - uses: actions/download-artifact@v4
       with:
         pattern: wheel-macos*
-        path: original-dist/
+        path: dist/
         merge-multiple: true
-
-    # Extract binaries from one of the wheels (they should be the same)
-    - name: Extract binaries from original wheel
-      run: |
-        WHEEL_FILE=$(ls original-dist/*.whl | head -1)
-        python -m wheel unpack "$WHEEL_FILE"
-        # Copy the binaries to the expected location for rebuilding
-        cp -r yices_solver-*/yices_solver ./
-
-    # Rebuild wheels with test version for each original wheel's platform
-    - name: Build test wheels
-      env:
-        SETUPTOOLS_SCM_PRETEND_VERSION: ${{ env.WHEEL_VERSION }}
-      run: |
-        echo "Building test wheels for yices-solver version ${WHEEL_VERSION}"
-
-        # Extract platform tags from original wheels and rebuild for each
-        for wheel in original-dist/*.whl; do
-          # Extract platform info from wheel filename
-          # Format: yices_solver-VERSION-py3-none-PLATFORM.whl
-          basename=$(basename "$wheel")
-          platform=$(echo "$basename" | sed -n 's/.*-py3-none-\(.*\)\.whl/\1/p')
-
-          echo "Building for platform: $platform"
-          python -m build --wheel \
-            --config-setting="--build-option=--plat-name" \
-            --config-setting="--build-option=$platform"
-        done
 
     - name: Publish package distributions to TestPyPI
       uses: pypa/gh-action-pypi-publish@release/v1
@@ -254,7 +226,7 @@ jobs:
       - name: Download wheel artifact
         uses: actions/download-artifact@v4
         with:
-          pattern: wheel-${{ matrix.os }}
+          name: wheel-${{ matrix.os }}
           path: dist/
 
       - name: Install wheel locally
