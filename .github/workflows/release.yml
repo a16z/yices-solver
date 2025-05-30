@@ -71,6 +71,7 @@ jobs:
 
   publish-release:
     runs-on: ubuntu-latest
+    environment: pypi
     needs: [prepare, build-linux, build-macos, build-windows]
     permissions:
       id-token: write
