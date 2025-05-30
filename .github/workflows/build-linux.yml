@@ -25,6 +25,15 @@ on:
       yices_version:
         description: "Upstream Yices version (e.g. 2.6.5)"
         required: true
+      run_local_tests:
+        description: "Run local tests"
+        required: true
+        type: boolean
+      run_remote_tests:
+        description: "Run remote tests"
+        required: true
+        type: boolean
+
 
   push:
     branches:
@@ -141,12 +150,13 @@ jobs:
         path: dist/*.whl
 
   test-publish:
-    # skip publishing to testpypi when called by another workflow
-    # https://github.com/pypi/warehouse/issues/11096
-    if: ${{ inputs.run_remote_tests == '' || inputs.run_remote_tests == true }}
-
     # pypa/gh-action-pypi-publish@release/v1 is docker-based, so needs to run on a recent linux
     runs-on: ubuntu-latest
+
+    # skip publishing to testpypi when called by another workflow
+    # https://github.com/pypi/warehouse/issues/11096
+    if: ${{ inputs.run_remote_tests || github.event_name == 'push' }}
+
     needs: build-wheel
     environment: testpypi
     permissions:
@@ -199,11 +209,12 @@ jobs:
         verbose: true
 
   test-remote-artifacts:
-    if: ${{ inputs.run_remote_tests == '' || inputs.run_remote_tests == true}}
-
     name: manylinux_${{ matrix.manylinux_version }} / py${{ matrix.py }}
     needs: test-publish
     runs-on: ubuntu-latest
+
+    if: ${{ inputs.run_remote_tests || github.event_name == 'push' }}
+
     container:
       image: quay.io/pypa/manylinux_${{ matrix.manylinux_version }}_x86_64
     strategy:
@@ -249,11 +260,12 @@ jobs:
           venv-path: venv
 
   local-test:
-    if: ${{ inputs.run_local_tests == '' || inputs.run_local_tests == true }}
-
     name: local test / manylinux_${{ matrix.manylinux_version }} / py${{ matrix.py }}
     needs: build-wheel
     runs-on: ubuntu-latest
+
+    if: ${{ inputs.run_local_tests || github.event_name == 'push' }}
+
     container:
       image: quay.io/pypa/manylinux_${{ matrix.manylinux_version }}_x86_64
     strategy:
