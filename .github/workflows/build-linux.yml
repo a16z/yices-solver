@@ -11,15 +11,13 @@ on:
         description: "Python wheel version (e.g. 2.6.5.post123)"
         required: true
         type: string
-    secrets:
-      TEST_PYPI_API_TOKEN:
-        required: true
 
   workflow_dispatch:
     inputs:
       yices_version:
         description: "Upstream Yices version (e.g. 2.6.5)"
         required: true
+
   push:
     branches:
       - main
