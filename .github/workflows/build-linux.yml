@@ -15,12 +15,10 @@ on:
         description: "Run local tests"
         required: true
         type: boolean
-        default: true
       run_remote_tests:
         description: "Run remote tests"
         required: true
         type: boolean
-        default: true
 
   workflow_dispatch:
     inputs:
@@ -50,6 +48,13 @@ jobs:
           echo "Trigger: ${{ github.event_name }}"
           echo "Event: ${{ toJson(github.event) }}"
           echo "Inputs: ${{ toJson(github.event.inputs) }}"
+
+  print-inputs:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Print inputs
+        run: |
+          echo "Inputs: ${{ toJson(inputs) }}"
 
   build-wheel:
     runs-on: ubuntu-latest
