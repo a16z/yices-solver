@@ -143,7 +143,7 @@ jobs:
   test-publish:
     # skip publishing to testpypi when called by another workflow
     # https://github.com/pypi/warehouse/issues/11096
-    if: ${{ inputs.run_remote_tests == '' || inputs.run_remote_tests }}
+    if: ${{ inputs.run_remote_tests == '' || inputs.run_remote_tests == true }}
 
     # pypa/gh-action-pypi-publish@release/v1 is docker-based, so needs to run on a recent linux
     runs-on: ubuntu-latest
@@ -199,7 +199,7 @@ jobs:
         verbose: true
 
   test-remote-artifacts:
-    if: ${{ inputs.run_remote_tests == '' || inputs.run_remote_tests }}
+    if: ${{ inputs.run_remote_tests == '' || inputs.run_remote_tests == true}}
 
     name: manylinux_${{ matrix.manylinux_version }} / py${{ matrix.py }}
     needs: test-publish
@@ -249,7 +249,7 @@ jobs:
           venv-path: venv
 
   local-test:
-    if: ${{ inputs.run_local_tests == '' || inputs.run_local_tests }}
+    if: ${{ inputs.run_local_tests == '' || inputs.run_local_tests == true }}
 
     name: local test / manylinux_${{ matrix.manylinux_version }} / py${{ matrix.py }}
     needs: build-wheel
