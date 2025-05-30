@@ -11,12 +11,28 @@ on:
         description: "Python wheel version (e.g. 2.6.5.post123)"
         required: true
         type: string
+      run_local_tests:
+        description: "Run local tests"
+        required: true
+        type: boolean
+      run_remote_tests:
+        description: "Run remote tests"
+        required: true
+        type: boolean
 
   workflow_dispatch:
     inputs:
       yices_version:
         description: "Upstream Yices version (e.g. 2.6.5)"
         required: true
+      run_local_tests:
+        description: "Run local tests"
+        required: true
+        type: boolean
+      run_remote_tests:
+        description: "Run remote tests"
+        required: true
+        type: boolean
 
   push:
     branches:
@@ -29,7 +45,6 @@ on:
 env:
   YICES_VERSION: ${{ inputs.yices_version || github.event.inputs.yices_version || (github.ref_name != 'main' && github.ref_name) || '2.6.4' }}
   WHEEL_VERSION: ${{ inputs.wheel_version || format('{0}.post{1}', (inputs.yices_version || github.event.inputs.yices_version || (github.ref_name != 'main' && github.ref_name) || '2.6.4'), github.run_number) }}
-  TEST_WHEEL_VERSION: ${{ inputs.wheel_version || format('{0}.post{1}', (inputs.yices_version || github.event.inputs.yices_version || (github.ref_name != 'main' && github.ref_name) || '2.6.4'), github.run_number) }}.dev${{ github.run_number }}
 
 jobs:
   build-wheel:
@@ -111,6 +126,9 @@ jobs:
 
   test-publish:
     runs-on: ubuntu-latest
+
+    if: ${{ inputs.run_remote_tests || github.event_name == 'push' }}
+
     needs: build-wheel
     environment: testpypi
     permissions:
@@ -145,9 +163,9 @@ jobs:
     # Rebuild wheels with test version for each original wheel's platform
     - name: Build test wheels
       env:
-        SETUPTOOLS_SCM_PRETEND_VERSION: ${{ env.TEST_WHEEL_VERSION }}
+        SETUPTOOLS_SCM_PRETEND_VERSION: ${{ env.WHEEL_VERSION }}
       run: |
-        echo "Building test wheels for yices-solver version ${TEST_WHEEL_VERSION}"
+        echo "Building test wheels for yices-solver version ${WHEEL_VERSION}"
 
         # Extract platform tags from original wheels and rebuild for each
         for wheel in original-dist/*.whl; do
@@ -174,6 +192,9 @@ jobs:
     name: test ${{ matrix.os }} / py${{ matrix.py }}
     needs: test-publish
     runs-on: ${{ matrix.os }}
+
+    if: ${{ inputs.run_remote_tests || github.event_name == 'push' }}
+
     strategy:
       fail-fast: false
       matrix:
@@ -199,7 +220,54 @@ jobs:
 
           pip install -vv \
             --index-url https://test.pypi.org/simple/ \
-            "yices-solver==${TEST_WHEEL_VERSION}"
+            "yices-solver==${WHEEL_VERSION}"
+
+      - name: Inspect venv
+        shell: bash
+        run: ls -la venv/bin/
+
+      - name: Test binaries
+        uses: ./.github/actions/test-binaries
+        with:
+          venv-path: venv
+
+  local-test:
+    name: local test / ${{ matrix.os }} / py${{ matrix.py }}
+    needs: build-wheel
+    runs-on: ${{ matrix.os }}
+
+    if: ${{ inputs.run_local_tests || github.event_name == 'push' }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-13, macos-latest]
+        py: ['3.9', '3.10', '3.11', '3.12', '3.13']
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.py }}
+
+      - name: Download wheel artifact
+        uses: actions/download-artifact@v4
+        with:
+          pattern: wheel-macos*
+          path: dist/
+          merge-multiple: true
+
+      - name: Install wheel locally
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          python -m venv venv
+          source venv/bin/activate
+
+          # Install the wheel directly from artifact
+          pip install dist/*.whl
 
       - name: Inspect venv
         shell: bash
